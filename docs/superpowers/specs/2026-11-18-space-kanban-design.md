@@ -11,7 +11,7 @@ Ukuran Pekerjaan: Proyek Aplikasi Penuh (Next.js App Router + PostgreSQL/Prisma 
 
 Masalah utama yang diselesaikan:
 - Daftar tugas sering tercecer antara kebutuhan *melihat status pekerjaan harian lintas proyek* dan kebutuhan *melihat backlog tugas per proyek*.
-- Detail strategis proyek (status siklus hidup, milestone, catatan teknis, tech stack, tautan repo/live) jika ditaruh di papan harian akan memenuhi layar dan mengganggu fokus eksekusi.
+- Detail strategis proyek (status siklus hidup, milestone, catatan teknis, atribut teknis/URL) jika ditaruh di papan harian akan memenuhi layar dan mengganggu fokus eksekusi.
 
 Solusi yang dibangun (mengikuti wireframe pengguna):
 - **Dashboard Utama (`/`)** memisahkan layar secara vertikal menjadi dua area sinkron dari satu sumber data:
@@ -26,7 +26,7 @@ Solusi yang dibangun (mengikuti wireframe pengguna):
 ### Goals
 1. **Satu sumber data, dua tampilan sinkron**: perubahan status, judul, detail, atau penghapusan tugas di Space Kanban langsung tercermin di kolom proyek bawah, dan sebaliknya.
 2. **Eksekusi harian cepat**: tambah tugas cepat langsung dari kolom proyek maupun dari Kanban, drag-and-drop antar kolom status & reorder di Space Kanban dengan *optimistic UI update*, serta toggle tampilan `Split` / `Fokus Kanban` / `Fokus Proyek`.
-3. **Pengelolaan proyek terstruktur**: halaman `/projects` dan `/projects/[id]` mengelola status proyek (`Active`, `On Hold`, `Completed`, `Archived`), catatan Markdown (mode Edit/Preview), *tech stack*, tautan Repo & Live URL, target tanggal, dan *Milestone* yang progress-nya dihitung otomatis dari tugas tertaut yang berstatus `Selesai`.
+3. **Pengelolaan proyek terstruktur**: halaman `/projects` dan `/projects/[id]` mengelola status proyek (`Active`, `On Hold`, `Completed`, `Archived`), catatan Markdown (mode Edit/Preview), atribut teknis dinamis (repo/URL/endpoint yang dapat ditambah/edit/hapus bebas), dan *Milestone* yang progress-nya dihitung otomatis dari tugas tertaut yang berstatus `Selesai`.
 4. **Kebersihan board jangka panjang**: hanya proyek `Active` yang tampil di dashboard utama; tugas `Selesai` di kolom proyek bawah terlipat (*collapsible*); dan tugas `Selesai` di Kanban dapat diarsipkan per batch tanpa menghapus histori maupun merusak perhitungan progress milestone.
 5. **Autentikasi & isolasi data ketat**: login via **Google OAuth (Auth.js v5)** dengan pemisahan Next.js Route Groups `(auth)` dan `(workspace)`. Setiap akun Google yang login otomatis terdaftar dan memiliki workspace terisolasi berdasarkan `userId`.
 6. **UI Bahasa Indonesia & Solid Kontras Tinggi**: antarmuka Light Mode 100% solid (zero translucency / no glassmorphism) dengan komponen feedback kustom seragam (**Toast** dan **Modal**).
@@ -54,7 +54,7 @@ Berdasarkan `package.json` yang sudah ada di repositori:
   - Mengikuti `devflow_design_system.md` (Light Mode solid, zero transparency, tanpa `backdrop-blur-*`).
   - **Warna**: Surface dasar `#F6F4EE`, kartu `#FFFFFF`, kontainer sekunder `#F4F2EB`, border & teks utama `#1C1917`, secondary `#FEF08A`, accent `#FECDD3`, kategori pastel solid 100% opaque (`#E0F2FE`, `#FEF3C7`, `#DCFCE7`, `#FED7AA`, `#FECDD3`), serta semantic solid berteks putih (`#15803D` success, `#B45309` warning, `#BE123C` danger, `#0369A1` info).
   - **Border & Shadow**: `border-2 border-[#1C1917]` + hard offset shadow solid (`shadow-[0_4px_0_#1C1917]` kolom, `shadow-[0_3px_0_#1C1917]` kartu/badge, `shadow-[0_2px_0_#1C1917]` tombol dengan `active:translate-y-0.5 active:shadow-none`).
-  - **Tipografi & Ikon**: `Fredoka` (heading, tombol, badge), `Plus Jakarta Sans` (body UI), `Space Mono` (tanggal, metadata, tech stack), serta ikon `Material Symbols Rounded`.
+  - **Tipografi & Ikon**: `Nunito` (heading, tombol, badge), `Plus Jakarta Sans` (body UI), `Space Mono` (tanggal, metadata, counter), serta ikon `Material Symbols Rounded`.
   - **Bentuk & Gerak**: `rounded-3xl` (kolom/kontainer besar), `rounded-2xl` (kartu/tombol), `rounded-full` (badge/chip), transisi `100ms`/`150ms` `cubic-bezier(0.16, 1, 0.3, 1)`.
   - **Bahasa & Feedback**: Bahasa Indonesia penuh dengan nada ramah & terstruktur (*"Santai & Fokus"*, *"Mulai"*, *"Selesai!"*, *"100% Tuntas"*), kecuali istilah teknis Kanban (`Space Kanban`, `Review`). Seluruh notifikasi memakai **Toast** kustom dan dialog memakai **Modal** kustom (tanpa `sweetalert2` dan tanpa `alert()`/`confirm()`).
 
@@ -112,7 +112,7 @@ app/
 ## 6. Model Data (Skema Prisma & PostgreSQL)
 
 ### Model Auth.js Standar
-- `User` (`id`, `name`, `email`, `emailVerified`, `image`, `createdAt`, `updatedAt`, relasi ke `accounts`, `sessions`, `projects`, `milestones`, `tasks`)
+- `User` (`id`, `name`, `email`, `emailVerified`, `image`, `theme`, `workspaceTitle`, `workspaceSubtitle`, `createdAt`, `updatedAt`, relasi ke `accounts`, `sessions`, `projects`, `milestones`, `tasks`)
 - `Account`, `Session`, `VerificationToken` sesuai standar `@auth/prisma-adapter`.
 
 ### Enum Domain
@@ -125,13 +125,11 @@ app/
    - `id`: `String @id @default(cuid())`
    - `userId`: `String` (relasi ke `User`, `onDelete: Cascade`)
    - `name`: `String`
-   - `description`: `String?` (catatan/overview markdown atau teks panjang)
+   - `summary`: `String?` (deskripsi singkat 1–2 baris di header & kartu proyek)
+   - `notes`: `String?` (catatan panjang format Markdown di tab `Catatan`)
    - `status`: `ProjectStatus @default(ACTIVE)`
    - `color`: `String` (token/kode warna solid identitas proyek untuk badge di Kanban)
-   - `techStack`: `String[]` (daftar teknologi)
-   - `repoUrl`: `String?`
-   - `liveUrl`: `String?`
-   - `targetDate`: `DateTime?`
+   - `attributes`: `Json @default("[]")` (daftar atribut teknis dinamis `Array<{ id, label, value }>` yang dapat ditambah/edit/hapus bebas oleh pengguna, mis. Git Repository, Deployment, Database Endpoint, Target Rilis)
    - `createdAt`, `updatedAt`
    - Index: `@@index([userId, status])`
 
@@ -173,12 +171,13 @@ app/
 
 ### A. Dashboard Utama (`/`)
 1. **Header & Kontrol Layout**
-   - Navigasi: `Dashboard` (`/`) dan `Proyek` (`/projects`).
+   - Identitas Navbar yang dapat dikonfigurasi: **Judul Navbar** (default `"Space Kanban"`) + **Deskripsi Singkat** di bawahnya.
+   - Navigasi: `Dashboard` (`/`) dan `Daftar Proyek` (`/projects`) — tanpa tab `Detail Proyek` di Navbar.
+   - Menu **Akun & Tema** (Modal Pengaturan): mengubah Judul & Deskripsi Singkat Navbar, memilih salah satu dari 7 tema warna (*Sky Tactile 3D*), dan tombol `Keluar Akun` (memicu Modal konfirmasi kustom).
    - Kontrol Layout Split-Screen: tombol segmented solid dengan 3 pilihan:
      - `Split` (default, atas-bawah sesuai wireframe)
      - `Fokus Kanban` (menyembunyikan area Proyek bawah agar Kanban maksimal)
      - `Fokus Proyek` (menyembunyikan Space Kanban atas agar daftar Proyek maksimal)
-   - Menu Akun: nama/foto profil Google + tombol `Keluar` (memicu Modal konfirmasi kustom sebelum sign-out).
 
 2. **Area Atas — Space Kanban**
    - **Toolbar Kanban**:
@@ -199,7 +198,7 @@ app/
    - Menampilkan seluruh proyek berstatus `ACTIVE` dalam container **horizontal scroll** (kolom berlebar tetap agar nyaman untuk > 3 proyek).
    - **Empty State**: jika belum ada proyek `ACTIVE`, tampilkan ajakan solid untuk membuat proyek pertama atau membuka `/projects`.
    - **Setiap Kolom Proyek**:
-     - Header: indikator warna solid proyek, judul proyek, jumlah tugas aktif, dan tombol tautan ke `/projects/[id]`.
+     - Header dapat diklik langsung untuk membuka `/projects/[id]` (tanpa tombol `Detail` terpisah); menampilkan indikator warna proyek, judul proyek, jumlah tugas aktif, dan ikon panah halus.
      - Input/tombol `+ Tambah tugas cepat`: input cepat (cukup ketik judul lalu Enter, otomatis masuk status `Belum dikerjakan` pada proyek tersebut dan langsung muncul di Kanban atas) atau tombol buka Modal lengkap.
      - Daftar Tugas Aktif (`Sedang dikerjakan`, `Review`, `Belum dikerjakan`): otomatis diurutkan berdasarkan prioritas alur status (`ON_PROGRESS` -> `REVIEW` -> `BACKLOG`) lalu mengikuti `Task.order` (urutan Kanban), tanpa drag-and-drop terpisah di area bawah. Setiap baris menampilkan judul, badge status solid, dan badge prioritas. Klik baris membuka **Modal Detail/Edit Tugas**.
      - Seksi `Selesai (N)`: dikelompokkan dalam akordeon/bagian lipat (*collapsible*, tertutup secara default) yang memuat tugas `DONE` yang belum diarsipkan milik proyek tersebut.
@@ -218,23 +217,18 @@ app/
 
 ### C. Halaman Daftar Proyek (`/projects`)
 - Filter tab status: `Semua`, `Aktif`, `Ditunda`, `Selesai`, `Diarsipkan`.
-- Tombol `+ Proyek Baru` yang membuka Modal pembuatan proyek (nama, warna identitas dari palet solid terkurasi, status awal, deskripsi singkat, tech stack, repo URL, live URL, target tanggal).
-- Grid kartu proyek: menampilkan warna identitas, nama, badge status solid, ringkasan progress tugas (`X/Y Selesai`), chip *tech stack*, kontrol cepat ubah status proyek, dan tombol buka detail (`/projects/[id]`).
+- Tombol `+ Proyek Baru` yang membuka Modal pembuatan proyek (nama, warna identitas, status awal, deskripsi singkat).
+- Grid kartu proyek: menampilkan warna identitas, nama, badge status solid, ringkasan progress tugas (`X/Y Selesai`), dan kontrol cepat ubah status proyek. Klik kartu proyek langsung membuka `/projects/[id]` (tanpa tombol `Detail` terpisah).
 
 ### D. Halaman Detail Proyek (`/projects/[id]`)
-- **Header Proyek**: warna identitas, nama proyek, badge & dropdown ubah status proyek (`Active` / `On Hold` / `Completed` / `Archived`), tombol `Edit Proyek`, dan tombol `Hapus Proyek` (dengan Modal konfirmasi kustom yang memperingatkan bahwa seluruh milestone & tugas proyek ikut terhapus).
-- **3 Bagian/Tab**:
-  1. **Overview**:
-     - Deskripsi & catatan proyek dalam format Markdown lengkap (heading, list, link, code block) dengan tab `Edit` dan `Preview` (dapat diedit & disimpan).
-     - Daftar *Tech Stack* (tambah/hapus tag teknologi).
-     - Tautan eksternal (`Repo URL`, `Live URL`) dan `Target Tanggal`.
-     - Ringkasan metrik tugas proyek (`Belum dikerjakan`, `Sedang dikerjakan`, `Review`, `Selesai`, `Diarsipkan`).
-  2. **Milestones**:
+- **Header Proyek**: badge status, nama proyek, deskripsi singkat di bawah judul, serta ringkasan statistik (`Tugas Tuntas X/Y`, `Selesai Z%`) + tombol `+ Tugas Baru` langsung di kanan header.
+- **2 Tampilan (Detail Awal & Milestones)**:
+  1. **Halaman Detail Awal (`Tugas & Catatan`, default layout 2 kolom)**:
+     - Kiri (~2/3): **Daftar Tugas Khusus Proyek Ini** (filter status `Semua Status`, `Belum dikerjakan`, `Sedang dikerjakan`, `Review`, `Selesai`, serta `Riwayat Arsip` dengan tombol `Pulihkan ke Board`, klik baris untuk edit tugas) dan tepat di bawahnya **Catatan Proyek (Markdown)** dengan mode `Edit` / `Preview`.
+     - Kanan (~1/3): **Informasi Teknis & Atribut** menampilkan daftar atribut dinamis (`label` + `value`, otomatis menjadi link jika berawalan `http://`/`https://`), tombol `Edit Konfigurasi` (buka Modal untuk edit metadata proyek dan tambah/ubah/hapus baris atribut secara bebas), serta tombol hapus proyek (ikon tempat sampah dengan Modal konfirmasi kustom).
+  2. **Milestones** *(satu tombol tab terpisah di atas)*:
      - Tombol `+ Tambah Milestone` (judul, deskripsi opsional, target tanggal opsional).
-     - Kartu per Milestone menampilkan progress bar solid otomatis (`N/M tugas selesai`, persentase), daftar tugas tertaut, tombol edit/hapus milestone (dengan konfirmasi Modal), dan aksi cepat `+ Tambah Tugas ke Milestone Ini`.
-  3. **Tugas (Tasks)**:
-     - Daftar seluruh tugas milik proyek tersebut dalam format tabel/list yang rapi.
-     - Filter status + filter/tab khusus **`Riwayat Arsip`** (`isArchived = true`) agar pengguna tetap bisa meninjau tugas lama yang sudah diarsipkan dari Space Kanban, mengembalikannya ke board (`Pulihkan ke Board`), atau menghapus permanen.
+     - Kartu per Milestone menampilkan progress bar otomatis (`N/M tugas selesai`, persentase), daftar tugas tertaut, tombol edit/hapus milestone (dengan konfirmasi Modal), dan aksi cepat `+ Tugas` langsung ke milestone tersebut.
 
 ### E. Sistem Feedback Kustom: Toast & Modal (*DevFlow Cute Solid*)
 1. **Toast (`ToastProvider` + `useToast`)**

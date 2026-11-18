@@ -9,16 +9,20 @@ export type ProjectColorTone =
   | "amber"
   | "teal";
 
+export interface ProtoProjectAttribute {
+  id: string;
+  label: string;
+  value: string;
+}
+
 export interface ProtoProject {
   id: string;
   name: string;
-  description: string;
+  summary: string;
+  notes: string;
   status: ProjectStatus;
   tone: ProjectColorTone;
-  techStack: string[];
-  repoUrl?: string;
-  liveUrl?: string;
-  targetDate?: string;
+  attributes: ProtoProjectAttribute[];
 }
 
 export interface ProtoMilestone {
@@ -74,11 +78,11 @@ export const TASK_STATUS_META: Record<
 
 export const PRIORITY_META: Record<
   TaskPriority,
-  { label: string; badgeVariant: "neutral" | "warning" | "danger" }
+  { label: string; badgeVariant: "neutral" | "warning" | "danger"; textColor: string }
 > = {
-  LOW: { label: "Rendah", badgeVariant: "neutral" },
-  MEDIUM: { label: "Sedang", badgeVariant: "warning" },
-  HIGH: { label: "Tinggi", badgeVariant: "danger" },
+  LOW: { label: "Rendah", badgeVariant: "neutral", textColor: "text-[#0284C7]" },
+  MEDIUM: { label: "Sedang", badgeVariant: "warning", textColor: "text-[#D97706]" },
+  HIGH: { label: "Tinggi", badgeVariant: "danger", textColor: "text-[#E11D48]" },
 };
 
 export const PROJECT_COLOR_DOT: Record<ProjectColorTone, string> = {
@@ -109,44 +113,53 @@ export const INITIAL_PROJECTS: ProtoProject[] = [
   {
     id: "p1",
     name: "Space Kanban",
-    description:
-      "Aplikasi manajemen proyek pribadi dengan papan Kanban lintas proyek dan daftar tugas per proyek.\n\n- Fokus eksekusi harian di `/`.\n- Manajemen detail proyek & milestone di `/projects`.",
+    summary:
+      "Workspace manajemen proyek pribadi dengan papan Kanban lintas proyek dan daftar tugas per proyek.",
+    notes:
+      "## Fokus Rilis\n\n- Eksekusi harian sinkron di `/`.\n- Manajemen detail proyek, atribut teknis, dan milestone di `/projects/[id]`.\n- Mendukung 7 tema warna Sky Tactile 3D.",
     status: "ACTIVE",
     tone: "sky",
-    techStack: ["Next.js 16", "Prisma 7", "PostgreSQL", "Tailwind v4"],
-    repoUrl: "https://github.com/contoh/space-kanban",
-    liveUrl: "https://space-kanban.example.com",
-    targetDate: "2026-12-10",
+    attributes: [
+      { id: "a1", label: "Git Repository", value: "https://github.com/contoh/space-kanban" },
+      { id: "a2", label: "Deployment", value: "https://space-kanban.example.com" },
+      { id: "a3", label: "Database Endpoint", value: "ap-southeast-1.postgres.local" },
+      { id: "a4", label: "Target Rilis", value: "10 Des 2026" },
+    ],
   },
   {
     id: "p2",
     name: "API Gateway",
-    description:
+    summary:
       "Layanan gateway internal untuk rate limiting, validasi JWT, dan logging terpusat.",
+    notes: "Menggunakan Redis token bucket per IP dengan target p99 < 15ms.",
     status: "ACTIVE",
     tone: "emerald",
-    techStack: ["Go", "Redis", "PostgreSQL"],
-    repoUrl: "https://github.com/contoh/api-gateway",
-    targetDate: "2026-11-30",
+    attributes: [
+      { id: "a5", label: "Git Repository", value: "https://github.com/contoh/api-gateway" },
+      { id: "a6", label: "Staging URL", value: "https://gw-staging.example.com" },
+    ],
   },
   {
     id: "p3",
     name: "Landing Toko",
-    description:
+    summary:
       "Landing page katalog produk ringan dengan fokus performa dan form pemesanan cepat.",
+    notes: "Optimasi seluruh gambar katalog di bawah 120KB WebP.",
     status: "ACTIVE",
     tone: "orange",
-    techStack: ["Astro", "Tailwind CSS"],
-    liveUrl: "https://toko.example.com",
-    targetDate: "2026-11-25",
+    attributes: [
+      { id: "a7", label: "Live URL", value: "https://toko.example.com" },
+      { id: "a8", label: "Target Tanggal", value: "25 Nov 2026" },
+    ],
   },
   {
     id: "p4",
     name: "Mobile Tracker",
-    description: "Aplikasi pencatat kebiasaan harian versi mobile (sedang ditunda).",
+    summary: "Aplikasi pencatat kebiasaan harian versi mobile (sedang ditunda).",
+    notes: "Menunggu penyelesaian fase API Gateway terlebih dahulu.",
     status: "ON_HOLD",
     tone: "rose",
-    techStack: ["Flutter", "SQLite"],
+    attributes: [],
   },
 ];
 
@@ -189,6 +202,7 @@ export const INITIAL_TASKS: ProtoTask[] = [
     description: "Pisahkan di route group `(auth)/login`.",
     status: "DONE",
     priority: "HIGH",
+    dueDate: "2026-11-18",
     order: 0,
     isArchived: false,
   },

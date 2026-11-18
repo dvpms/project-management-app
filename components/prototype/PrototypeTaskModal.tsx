@@ -25,6 +25,7 @@ interface PrototypeTaskModalProps {
   open: boolean;
   task: ProtoTask | null;
   defaultProjectId?: string;
+  defaultMilestoneId?: string;
   defaultStatus?: TaskStatus;
   projects: ProtoProject[];
   milestones: ProtoMilestone[];
@@ -37,6 +38,7 @@ interface PrototypeTaskModalProps {
 function PrototypeTaskModalInner({
   task,
   defaultProjectId,
+  defaultMilestoneId,
   defaultStatus = "BACKLOG",
   projects,
   milestones,
@@ -50,7 +52,9 @@ function PrototypeTaskModalInner({
   const [projectId, setProjectId] = useState(
     task?.projectId ?? defaultProjectId ?? projects[0]?.id ?? ""
   );
-  const [milestoneId, setMilestoneId] = useState(task?.milestoneId ?? "");
+  const [milestoneId, setMilestoneId] = useState(
+    task?.milestoneId ?? defaultMilestoneId ?? ""
+  );
   const [status, setStatus] = useState<TaskStatus>(task?.status ?? defaultStatus);
   const [priority, setPriority] = useState<TaskPriority>(task?.priority ?? "MEDIUM");
   const [dueDate, setDueDate] = useState(task?.dueDate ?? "");
@@ -291,6 +295,6 @@ function PrototypeTaskModalInner({
 
 export function PrototypeTaskModal(props: PrototypeTaskModalProps) {
   if (!props.open) return null;
-  const modalKey = `${props.task?.id ?? "new"}-${props.defaultStatus ?? "BACKLOG"}-${props.defaultProjectId ?? ""}`;
+  const modalKey = `${props.task?.id ?? "new"}-${props.defaultStatus ?? "BACKLOG"}-${props.defaultProjectId ?? ""}-${props.defaultMilestoneId ?? ""}`;
   return <PrototypeTaskModalInner key={modalKey} {...props} />;
 }

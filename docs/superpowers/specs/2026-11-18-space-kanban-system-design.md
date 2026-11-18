@@ -7,14 +7,15 @@ Dokumen arsitektur teknis untuk aplikasi **Space Kanban** (merujuk pada spesifik
 ## 1. Requirements & Constraints
 
 ### Functional Requirements
-- **Auth & Isolasi Data**: Google OAuth via Auth.js v5 (`next-auth`), pemisahan route group `(auth)` dan `(workspace)`, isolasi data ketat per `userId`.
+- **Auth & Isolasi Data**: Google OAuth via Auth.js v5 (`next-auth`), pemisahan route group `(auth)` dan `(workspace)`, isolasi data ketat per `userId`, serta pengaturan profil (`User.theme`, `User.workspaceTitle`, `User.workspaceSubtitle`).
 - **Dashboard Utama (`/`)**:
+  - **Navbar**: Judul & deskripsi singkat yang dapat dikonfigurasi + Menu Akun & Tema (7 tema *Sky Tactile 3D*).
   - **Space Kanban (atas)**: 4 kolom (`Belum dikerjakan`, `Sedang dikerjakan`, `Review`, `Selesai`), filter per proyek aktif, drag-and-drop pindah kolom & reorder, tambah tugas, arsip batch kolom `Selesai`.
-  - **Proyek Aktif (bawah)**: kolom horizontal scroll per proyek `ACTIVE`, tambah tugas cepat inline, tugas aktif terurut otomatis (`ON_PROGRESS` -> `REVIEW` -> `BACKLOG`, lalu `order`), bagian `Selesai` lipat (*collapsible*).
+  - **Proyek Aktif (bawah)**: 1 kartu 3D putih per proyek `ACTIVE` (*horizontal scroll*), klik header proyek langsung membuka `/projects/[id]`, tambah tugas cepat inline, baris tugas ringan terurut otomatis (`ON_PROGRESS` -> `REVIEW` -> `BACKLOG`, lalu `order`), bagian `Selesai` lipat (*collapsible*).
   - **Layout & Detail**: toggle `Split` / `Fokus Kanban` / `Fokus Proyek`; Modal Detail Tugas dengan deskripsi Markdown (`Edit`/`Preview`).
 - **Manajemen Proyek (`/projects` & `/projects/[id]`)**:
-  - CRUD proyek (status `ACTIVE`, `ON_HOLD`, `COMPLETED`, `ARCHIVED`, warna, tech stack, repo/live URL, target tanggal).
-  - Detail proyek: Overview (Markdown `Edit`/`Preview`), Milestones (progress otomatis dari task tertaut berstatus `DONE` termasuk yang terarsip), dan Tasks (termasuk tab `Riwayat Arsip` + pulihkan tugas).
+  - CRUD proyek (status `ACTIVE`, `ON_HOLD`, `COMPLETED`, `ARCHIVED`, warna, `summary`, `notes` Markdown, serta atribut teknis dinamis `attributes` yang dapat ditambah/edit/hapus bebas); klik kartu proyek langsung masuk `/projects/[id]`.
+  - Detail proyek: Header (`Tugas Tuntas`, `Selesai %`, `+ Tugas Baru`), Halaman Detail Awal (kiri: daftar tugas proyek + filter + `Riwayat Arsip` dan **Catatan Proyek** Markdown `Edit`/`Preview`; kanan: panel **Informasi Teknis & Atribut** + `Edit Konfigurasi`), serta tombol tab **Milestones** (progress otomatis termasuk arsip).
 - **UI & Feedback**: Design system *DevFlow Cute Solid* (Light Mode `#F6F4EE`/`#FFFFFF`/`#1C1917`, 3D offset shadow, `Fredoka` + `Plus Jakarta Sans` + `Space Mono`, ikon `Material Symbols Rounded`), Bahasa Indonesia penuh, **Toast** & **Modal** kustom.
 
 ### Non-Functional Requirements
@@ -70,7 +71,7 @@ Dokumen arsitektur teknis untuk aplikasi **Space Kanban** (merujuk pada spesifik
 ### A. Data Model & Indexing (Prisma + PostgreSQL)
 - **Auth**: `User`, `Account`, `Session`, `VerificationToken` (`@auth/prisma-adapter`).
 - **Domain**:
-  - `Project`: `id`, `userId`, `name`, `description`, `status` (`ProjectStatus`), `color`, `techStack` (`String[]`), `repoUrl`, `liveUrl`, `targetDate`. Index: `(userId, status)`.
+  - `Project`: `id`, `userId`, `name`, `summary`, `notes`, `status` (`ProjectStatus`), `color`, `attributes` (`Json` array `{ id, label, value }`). Index: `(userId, status)`.
   - `Milestone`: `id`, `projectId`, `userId`, `title`, `description`, `targetDate`, `order`. Index: `(projectId)`, `(userId)`.
   - `Task`: `id`, `projectId`, `milestoneId?`, `userId`, `title`, `description`, `status` (`TaskStatus`), `priority` (`TaskPriority`), `dueDate`, `order` (`Int`), `isArchived` (`Boolean`), `archivedAt`. Index: `(userId, isArchived, status)`, `(projectId, isArchived, status)`, `(milestoneId)`.
 

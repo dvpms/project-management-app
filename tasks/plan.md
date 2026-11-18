@@ -15,9 +15,9 @@ Membangun aplikasi manajemen proyek dan eksekusi tugas harian **Space Kanban** d
 ### Phase 1: Fondasi Database & Autentikasi
 
 #### Task 1: Setup Skema Prisma 7 & Konfigurasi PostgreSQL
-**Description:** Menyiapkan `prisma/schema.prisma` (model Auth.js termasuk kolom `User.theme` + `Project`, `Milestone`, `Task`, beserta enum & index), konfigurasi Prisma 7 (`prisma.config.ts`), client singleton `lib/prisma.ts` dengan `@prisma/adapter-pg`, dan `.env.example`.
+**Description:** Menyiapkan `prisma/schema.prisma` (model Auth.js termasuk kolom `User.theme`, `User.workspaceTitle`, `User.workspaceSubtitle`, plus `Project` dengan `summary`, `notes`, `attributes Json`, `Milestone`, `Task`, beserta enum & index), konfigurasi Prisma 7 (`prisma.config.ts`), client singleton `lib/prisma.ts` dengan `@prisma/adapter-pg`, dan `.env.example`.
 **Acceptance criteria:**
-- [ ] Skema Prisma mencakup `User` (dengan field `theme String @default("sky-blue")`), `Account`, `Session`, `VerificationToken`, `Project`, `Milestone`, `Task`, dan enum `ProjectStatus`, `TaskStatus`, `TaskPriority`.
+- [ ] Skema Prisma mencakup `User` (`theme`, `workspaceTitle`, `workspaceSubtitle`), `Account`, `Session`, `VerificationToken`, `Project` (`summary`, `notes`, `attributes`), `Milestone`, `Task`, dan enum `ProjectStatus`, `TaskStatus`, `TaskPriority`.
 - [ ] Index komposit `(userId, status)` dan `(userId, isArchived, status)` terpasang.
 - [ ] `.env.example` mendokumentasikan `DATABASE_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, dan `AUTH_GOOGLE_SECRET`.
 **Verification:**
@@ -39,12 +39,12 @@ Membangun aplikasi manajemen proyek dan eksekusi tugas harian **Space Kanban** d
 **Files likely touched:** `auth.ts`, `app/api/auth/[...nextauth]/route.ts`, `lib/auth-guard.ts`, `types/next-auth.d.ts`  
 **Estimated scope:** Medium (4 files)
 
-#### Task 3: Route Groups `(auth)` dan `(workspace)` + Navbar, Theme & Feedback Providers
-**Description:** Memisahkan halaman publik `/login` di `(auth)` (tombol solid "Masuk dengan Google") dan layout terproteksi di `(workspace)/layout.tsx` lengkap dengan Navbar, `ThemeProvider` + `ThemeSwitcher` (7 tema Sky Tactile 3D tersinkron ke `localStorage` & `User.theme`), konfirmasi keluar via `useConfirm()`, `ToastProvider`, dan `ConfirmModalProvider`.
+#### Task 3: Route Groups `(auth)` dan `(workspace)` + Navbar, Pengaturan Akun & Tema
+**Description:** Memisahkan halaman publik `/login` di `(auth)` (tombol solid "Masuk dengan Google") dan layout terproteksi di `(workspace)/layout.tsx` lengkap dengan Navbar (Judul + Deskripsi Singkat configurable, navigasi `Dashboard` & `Daftar Proyek` tanpa tombol `Detail Proyek`), Modal **Pengaturan Akun & Workspace** (Judul, Deskripsi, 7 tema warna Sky Tactile 3D tersinkron ke `localStorage` & DB `User`, tombol Keluar dengan `useConfirm()`), `ToastProvider`, dan `ConfirmModalProvider`.
 **Acceptance criteria:**
 - [ ] Pengguna belum login yang membuka `/` atau `/projects` otomatis di-redirect ke `/login`.
 - [ ] Pengguna sudah login yang membuka `/login` otomatis di-redirect ke `/`.
-- [ ] Navbar menampilkan navigasi `Dashboard` (`/`) dan `Proyek` (`/projects`), `ThemeSwitcher` (7 tema tersinkron ke DB & browser), info user, serta tombol `Keluar` dengan konfirmasi Modal kustom.
+- [ ] Navbar menampilkan Judul & Deskripsi Singkat yang dapat diubah, navigasi `Dashboard` (`/`) dan `Daftar Proyek` (`/projects`), serta Modal Pengaturan Akun & Tema (7 tema tersinkron DB & browser + konfirmasi Keluar).
 **Verification:**
 - [ ] `pnpm lint && pnpm build` lulus.
 - [ ] Manual check: akses `/login` dan redirect guard berjalan sesuai status sesi.
@@ -73,24 +73,24 @@ Membangun aplikasi manajemen proyek dan eksekusi tugas harian **Space Kanban** d
 **Estimated scope:** Medium (3 files)
 
 #### Task 5: Halaman Daftar Proyek (`/projects`) & Modal Proyek Baru
-**Description:** Membangun halaman `/projects` dengan filter tab status (`Semua`, `Aktif`, `Ditunda`, `Selesai`, `Diarsipkan`), grid kartu proyek solid (warna identitas, progress ringkas, *tech stack* chips, kontrol status cepat), dan Modal form `+ Proyek Baru`.
+**Description:** Membangun halaman `/projects` dengan filter tab status (`Semua`, `Aktif`, `Ditunda`, `Selesai`, `Diarsipkan`), grid kartu proyek solid yang dapat diklik langsung ke `/projects/[id]` (tanpa tombol `Detail` terpisah), kontrol status cepat (`stopPropagation`), dan Modal form `+ Proyek Baru`.
 **Acceptance criteria:**
-- [ ] Pengguna dapat membuat proyek baru lengkap dengan warna kategori dari palet *DevFlow Cute Solid*.
-- [ ] Filter tab status menyaring daftar proyek secara akurat.
+- [ ] Pengguna dapat membuat proyek baru lengkap dengan warna identitas proyek.
+- [ ] Klik kartu proyek langsung membuka `/projects/[id]` tanpa tombol `Detail`.
 - [ ] Mengubah status proyek memberi feedback **Toast** dan memengaruhi kemunculan di Dashboard utama.
 **Verification:**
 - [ ] `pnpm lint && pnpm build` lulus.
-- [ ] Manual check: buat proyek baru, ubah status, dan verifikasi filter tab.
+- [ ] Manual check: buat proyek baru, ubah status, dan verifikasi klik kartu membuka detail proyek.
 **Dependencies:** Task 3, Task 4  
 **Files likely touched:** `app/(workspace)/projects/page.tsx`, `components/projects/ProjectsClient.tsx`, `components/projects/ProjectFormModal.tsx`  
 **Estimated scope:** Medium (3 files)
 
-#### Task 6: Halaman Detail Proyek (`/projects/[id]`) — Header & Tab Overview
-**Description:** Membangun kerangka detail proyek `/projects/[id]` dengan header identitas proyek (ubah status, edit metadata, hapus proyek via `useConfirm()`), serta tab **Overview** (catatan Markdown `Edit`/`Preview`, *tech stack* tags, `Repo URL`, `Live URL`, `Target Tanggal`, dan ringkasan statistik tugas).
+#### Task 6: Halaman Detail Proyek (`/projects/[id]`) — Header, Daftar Tugas, Catatan & Atribut Configurable
+**Description:** Membangun `/projects/[id]` dengan Header proyek (status, judul, deskripsi singkat, metrik `Tugas Tuntas`, `Selesai %`, tombol `+ Tugas Baru`), dan halaman detail awal 2 kolom: kiri berisi **Daftar Tugas Proyek** (filter status + `Riwayat Arsip`, klik edit, tambah tugas langsung) serta **Catatan Proyek** (Markdown `Edit`/`Preview`) di bawahnya; kanan berisi panel **Informasi Teknis & Atribut** dengan Modal `Edit Konfigurasi` (tambah/edit/hapus atribut dinamis + metadata proyek) dan hapus proyek via `useConfirm()`, dengan tombol tab hanya untuk berpindah ke **Milestones**.
 **Acceptance criteria:**
 - [ ] Halaman menolak akses (404/notFound) jika proyek bukan milik `userId` aktif.
-- [ ] Edit overview Markdown, tech stack, tautan, dan tanggal tersimpan ke PostgreSQL dengan Toast konfirmasi.
-- [ ] Hapus proyek meminta konfirmasi lewat Modal kustom sebelum menghapus cascade.
+- [ ] Halaman detail awal menampilkan Daftar Tugas + Catatan Markdown (kiri) dan Atribut Configurable (kanan), sementara navigasi atas hanya menyediakan tombol ke `Milestones`.
+- [ ] Pengguna dapat menambah tugas langsung dari halaman detail serta menambah/mengedit/menghapus atribut tambahan (Repo, URL, Endpoint, dll.).
 **Verification:**
 - [ ] `pnpm lint && pnpm build` lulus.
 **Dependencies:** Task 5  
@@ -153,8 +153,8 @@ Membangun aplikasi manajemen proyek dan eksekusi tugas harian **Space Kanban** d
 **Files likely touched:** `components/kanban/SpaceKanbanBoard.tsx`, `components/kanban/KanbanColumn.tsx`, `components/kanban/KanbanTaskCard.tsx`  
 **Estimated scope:** Medium (3 files)
 
-#### Task 11: Area Bawah Proyek Aktif (Horizontal Scroll + Quick-Add + Collapsible Selesai)
-**Description:** Membangun `ActiveProjectsBoard` di bawah Space Kanban dengan horizontal scroll kolom proyek `ACTIVE`, form `+ Tambah tugas cepat` inline (Enter langsung tambah ke `Belum dikerjakan` & muncul di Kanban), daftar tugas terurut otomatis (`Sedang dikerjakan -> Review -> Belum dikerjakan -> order`), dan akordeon `Selesai (N)` yang dapat dilipat.
+#### Task 11: Area Bawah Proyek Aktif (Horizontal Scroll + Quick-Add + Klik Header ke Detail)
+**Description:** Membangun `ActiveProjectsBoard` di bawah Space Kanban dengan horizontal scroll kartu proyek `ACTIVE` (klik header proyek langsung membuka `/projects/[id]` tanpa tombol `Detail` terpisah), form `+ Tambah tugas cepat` inline, baris tugas terurut otomatis (`Sedang dikerjakan -> Review -> Belum dikerjakan -> order`), dan akordeon `Selesai (N)` yang dapat dilipat.
 **Acceptance criteria:**
 - [ ] Proyek `ACTIVE` > 3 tampil rapi dengan horizontal scroll.
 - [ ] Menambah tugas inline di kolom proyek bawah langsung memunculkan kartu di kolom `Belum dikerjakan` pada Space Kanban atas.

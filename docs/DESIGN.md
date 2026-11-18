@@ -83,7 +83,7 @@ Dikonfigurasi di `app/layout.tsx` via `next/font/google` dan `app/globals.css`:
   - `Body Medium`: `13px–14px` / `20px`, Medium, tracking `0`
   - `Body Small`: `11px–12px` / `16px`, Semibold, tracking `+0.01em`
 - **Monospace / Metadata (`font-mono`)**: `Space Mono` (400, 700)
-  - `Mono Small`: `11px` / `16px`, Bold — tanggal, counter, tag *tech stack*
+  - `Mono Small`: `11px` / `16px`, Bold — tanggal, counter, atribut teknis/URL
 - **Ikon**: `Material Symbols Rounded` (paket lokal `material-symbols/rounded.css`), diakses via `<Icon name="..." />`.
 
 ---

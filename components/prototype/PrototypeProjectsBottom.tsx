@@ -58,7 +58,12 @@ function ProjectCardColumn({
 
   return (
     <Card className="flex w-[340px] shrink-0 flex-col gap-4 rounded-3xl p-5 sm:w-[370px]">
-      <div className="flex items-center justify-between gap-2 border-b-2 border-border-soft pb-3">
+      {/* Klik header proyek langsung masuk ke Detail Proyek (tanpa tombol Detail terpisah) */}
+      <button
+        type="button"
+        onClick={onOpenDetail}
+        className="group flex w-full items-center justify-between gap-2 border-b-2 border-border-soft pb-3 text-left cursor-pointer"
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <span
             aria-hidden="true"
@@ -67,23 +72,19 @@ function ProjectCardColumn({
               PROJECT_COLOR_DOT[project.tone]
             )}
           />
-          <h3 className="truncate font-display text-[17px] font-bold leading-6 text-ink">
+          <h3 className="truncate font-display text-[17px] font-bold leading-6 text-ink group-hover:text-primary">
             {project.name}
           </h3>
           <span className="font-mono text-[12px] font-bold text-ink-muted">
             {activeTasks.length}
           </span>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onOpenDetail}
-          rightIcon={<Icon name="arrow_forward" size="sm" />}
-          className="h-8 px-2.5 text-[12px]"
-        >
-          Detail
-        </Button>
-      </div>
+        <Icon
+          name="chevron_right"
+          size="md"
+          className="shrink-0 text-ink-muted transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-primary"
+        />
+      </button>
 
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input

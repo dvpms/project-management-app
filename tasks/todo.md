@@ -1,15 +1,15 @@
 # Implementation Todo: Space Kanban
 
 ## Phase 1: Fondasi Database & Autentikasi
-- [ ] **Task 1**: Setup skema Prisma 7 (`prisma/schema.prisma` termasuk `User.theme`, `prisma.config.ts`, `lib/prisma.ts`, `.env.example`)
+- [ ] **Task 1**: Setup skema Prisma 7 (`prisma/schema.prisma` termasuk `User.theme`/`workspaceTitle`/`workspaceSubtitle` & `Project.attributes`, `prisma.config.ts`, `lib/prisma.ts`, `.env.example`)
 - [ ] **Task 2**: Setup Auth.js v5 Google OAuth (`auth.ts`, `/api/auth/[...nextauth]/route.ts`, `lib/auth-guard.ts`)
-- [ ] **Task 3**: Buat Route Groups `(auth)/login` dan `(workspace)/layout.tsx` (Guard sesi, Navbar, `ThemeSwitcher` 7 tema sinkron DB, Toast & ConfirmModal providers)
+- [ ] **Task 3**: Buat Route Groups `(auth)/login` dan `(workspace)/layout.tsx` (Guard sesi, Navbar configurable, Modal Pengaturan Akun & 7 Tema, Toast & ConfirmModal providers)
 - [ ] **Checkpoint 1**: `npx prisma generate`, `pnpm lint`, dan `pnpm build` lulus
 
 ## Phase 2: Pusat Manajemen Proyek (`/projects` & `/projects/[id]`)
 - [ ] **Task 4**: Server Actions Proyek + validasi Zod + komponen `MarkdownEditor` (`Edit`/`Preview`)
-- [ ] **Task 5**: Halaman `/projects` (filter tab status, grid kartu proyek, Modal `+ Proyek Baru`)
-- [ ] **Task 6**: Halaman `/projects/[id]` Header & Tab **Overview** (catatan Markdown, tech stack, repo/live URL, target tanggal)
+- [ ] **Task 5**: Halaman `/projects` (filter tab status, grid kartu proyek klik langsung ke detail, Modal `+ Proyek Baru`)
+- [ ] **Task 6**: Halaman `/projects/[id]` Header (`+ Tugas Baru`), Detail Awal (**Daftar Tugas** + **Catatan** Markdown di kiri, **Informasi Teknis & Atribut** configurable di kanan), dan tombol tab **Milestones**
 - [ ] **Task 7**: Server Actions Milestone + Tab **Milestones** di `/projects/[id]` (progress otomatis dari task `DONE`)
 - [ ] **Checkpoint 2**: Flow proyek & milestone terverifikasi; `pnpm lint && pnpm build` lulus
 
