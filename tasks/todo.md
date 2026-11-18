@@ -1,10 +1,10 @@
 # Implementation Todo: Space Kanban
 
 ## Phase 1: Fondasi Database & Autentikasi
-- [ ] **Task 1**: Lengkapi `prisma/schema.prisma` (`User.theme`/`workspaceTitle`/`workspaceSubtitle` & `Project.attributes`), `lib/prisma.ts`, `.env.example`
-- [ ] **Task 2**: Setup Auth.js v5 Google OAuth (`auth.ts`, `/api/auth/[...nextauth]/route.ts`, `lib/auth-guard.ts`)
-- [ ] **Task 3**: Buat Route Groups `(auth)/login` dan `(workspace)/layout.tsx` (Guard sesi, Navbar configurable, Modal Pengaturan Akun & 7 Tema, Toast & ConfirmModal providers)
-- [ ] **Checkpoint 1**: `npx prisma generate --config prisma7.config.ts`, `npx tsc --noEmit`, `pnpm lint`, dan `pnpm build` lulus
+- [x] **Task 1**: Lengkapi `prisma/schema.prisma` (`User.theme`/`workspaceTitle`/`workspaceSubtitle` & `Project.attributes`), `lib/prisma.ts`, `.env.example`
+- [x] **Task 2**: Setup Auth.js v5 Google OAuth (`auth.ts`, `/api/auth/[...nextauth]/route.ts`, `lib/auth-guard.ts`)
+- [x] **Task 3**: Buat Route Groups `(auth)/login` dan `(workspace)/layout.tsx` (Guard sesi, Navbar configurable, Modal Pengaturan Akun & 7 Tema, Toast & ConfirmModal providers)
+- [x] **Checkpoint 1**: `npx prisma generate --config prisma7.config.ts`, `npx tsc --noEmit`, `pnpm lint`, dan `pnpm build` lulus
 
 ## Phase 2: Pusat Manajemen Proyek (`/projects` & `/projects/[id]`)
 - [ ] **Task 4**: Validasi Zod + `services/project-service.ts` + `actions/project-actions.ts` + `MarkdownEditor` (`Edit`/`Preview`)
