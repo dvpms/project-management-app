@@ -8,13 +8,15 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString =
+    process.env.DATABASE_URL_POOLED || process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error("Environment variable DATABASE_URL belum dikonfigurasi.");
+    throw new Error(
+      "Koneksi database belum dikonfigurasi.",
+    );
   }
 
-  const pool =
-    globalForPrisma.pgPool ?? new Pool({ connectionString });
+  const pool = globalForPrisma.pgPool ?? new Pool({ connectionString });
   if (process.env.NODE_ENV !== "production") {
     globalForPrisma.pgPool = pool;
   }
