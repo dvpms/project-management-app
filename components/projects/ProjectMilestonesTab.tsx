@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
@@ -19,6 +20,7 @@ import {
   useConfirm,
   useToast,
 } from "@/components/ui";
+import { PROGRESS_TRANSITION, VIEW_SWITCH_TRANSITION } from "@/lib/motion";
 import type { ProjectDetailData } from "@/services/project-service";
 
 export function ProjectMilestonesTab({
@@ -128,65 +130,80 @@ export function ProjectMilestonesTab({
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-          {milestones.map((m) => {
-            const pct =
-              m.totalTasks > 0
-                ? Math.round((m.doneTasks / m.totalTasks) * 100)
-                : 0;
+          <AnimatePresence mode="popLayout" initial={false}>
+            {milestones.map((m) => {
+              const pct =
+                m.totalTasks > 0
+                  ? Math.round((m.doneTasks / m.totalTasks) * 100)
+                  : 0;
 
-            return (
-              <Card key={m.id}>
-                <CardHeader>
-                  <div className="min-w-0">
-                    <CardTitle className="truncate">{m.title}</CardTitle>
-                    {m.targetDate && (
-                      <p className="mt-1 font-mono text-[11px] font-bold text-ink-muted">
-                        Target: {m.targetDate}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant={pct === 100 && m.totalTasks > 0 ? "success" : "info"}
-                      mono
-                    >
-                      {pct}%
-                    </Badge>
-                    <IconButton
-                      size="sm"
-                      variant="danger"
-                      label={`Hapus milestone ${m.title}`}
-                      icon={<Icon name="delete" size="sm" />}
-                      onClick={() => handleDelete(m.id, m.title)}
-                      disabled={isPending}
-                    />
-                  </div>
-                </CardHeader>
+              return (
+                <motion.div
+                  key={m.id}
+                  layout="position"
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={VIEW_SWITCH_TRANSITION}
+                >
+                  <Card>
+                    <CardHeader>
+                      <div className="min-w-0">
+                        <CardTitle className="truncate">{m.title}</CardTitle>
+                        {m.targetDate && (
+                          <p className="mt-1 font-mono text-[11px] font-bold text-ink-muted">
+                            Target: {m.targetDate}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={
+                            pct === 100 && m.totalTasks > 0 ? "success" : "info"
+                          }
+                          mono
+                        >
+                          {pct}%
+                        </Badge>
+                        <IconButton
+                          size="sm"
+                          variant="danger"
+                          label={`Hapus milestone ${m.title}`}
+                          icon={<Icon name="delete" size="sm" />}
+                          onClick={() => handleDelete(m.id, m.title)}
+                          disabled={isPending}
+                        />
+                      </div>
+                    </CardHeader>
 
-                <CardContent className="flex flex-col gap-3">
-                  <div className="h-3 w-full overflow-hidden rounded-full border border-border-soft bg-surface-subtle">
-                    <div
-                      className="h-full rounded-full bg-[#16A34A]"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-mono text-[11px] font-bold text-ink-muted">
-                      {m.doneTasks}/{m.totalTasks} tugas selesai (termasuk arsip)
-                    </p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      leftIcon={<Icon name="add" size="sm" />}
-                      onClick={() => onAddTaskToMilestone(m.id)}
-                    >
-                      Tugas
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                    <CardContent className="flex flex-col gap-3">
+                      <div className="h-3 w-full overflow-hidden rounded-full border border-border-soft bg-surface-subtle">
+                        <motion.div
+                          className="h-full rounded-full bg-[#16A34A]"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={PROGRESS_TRANSITION}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-mono text-[11px] font-bold text-ink-muted">
+                          {m.doneTasks}/{m.totalTasks} tugas selesai (termasuk arsip)
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          leftIcon={<Icon name="add" size="sm" />}
+                          onClick={() => onAddTaskToMilestone(m.id)}
+                        >
+                          Tugas
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       )}
     </div>

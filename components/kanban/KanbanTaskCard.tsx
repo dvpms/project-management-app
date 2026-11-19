@@ -38,7 +38,7 @@ export function KanbanTaskCardContent({
       interactive={!isOverlay}
       className={cn(
         "p-4",
-        isOverlay && "rotate-1 border-primary border-b-primary-lip"
+        isOverlay && "border-primary border-b-primary-lip"
       )}
     >
       <CardContent className="flex flex-col gap-2.5 p-0">

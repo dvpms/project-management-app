@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence } from "framer-motion";
 import { useState, useTransition } from "react";
 import { createProjectAction } from "@/actions/project-actions";
 import type { ProjectStatus } from "@/app/generated/prisma/enums";
@@ -152,6 +153,9 @@ function ProjectCreateModalInner({
 }
 
 export function ProjectCreateModal(props: ProjectCreateModalProps) {
-  if (!props.open) return null;
-  return <ProjectCreateModalInner {...props} />;
+  return (
+    <AnimatePresence>
+      {props.open && <ProjectCreateModalInner key="create-project" {...props} />}
+    </AnimatePresence>
+  );
 }

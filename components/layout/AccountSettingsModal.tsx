@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence } from "framer-motion";
 import { useState, useTransition } from "react";
 import { signOutAction } from "@/actions/auth-actions";
 import { updateWorkspaceIdentityAction } from "@/actions/user-actions";
@@ -197,7 +198,10 @@ function AccountSettingsModalInner({
 }
 
 export function AccountSettingsModal(props: AccountSettingsModalProps) {
-  if (!props.open) return null;
   const modalKey = `${props.workspaceTitle}-${props.workspaceSubtitle}`;
-  return <AccountSettingsModalInner key={modalKey} {...props} />;
+  return (
+    <AnimatePresence>
+      {props.open && <AccountSettingsModalInner key={modalKey} {...props} />}
+    </AnimatePresence>
+  );
 }

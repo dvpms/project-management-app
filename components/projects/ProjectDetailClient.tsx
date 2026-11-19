@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ProjectAttributesPanel } from "@/components/projects/ProjectAttributesPanel";
@@ -12,6 +13,7 @@ import {
   type EditableTaskItem,
   type TaskModalProjectOption,
 } from "@/components/tasks/TaskDetailModal";
+import { VIEW_SWITCH_TRANSITION } from "@/lib/motion";
 import type { ProjectDetailData } from "@/services/project-service";
 
 export function ProjectDetailClient({
@@ -80,33 +82,50 @@ export function ProjectDetailClient({
         onAddTask={() => openNewTask()}
       />
 
-      {activeTab === "overview" ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <div className="flex flex-col gap-6 lg:col-span-8">
-            <ProjectTasksSection
-              tasks={project.tasks}
-              onSelectTask={openTaskModal}
-              onAddTask={() => openNewTask()}
-              onAddSubtask={(parentId) => openNewTask(undefined, parentId)}
-            />
+      <AnimatePresence mode="wait" initial={false}>
+        {activeTab === "overview" ? (
+          <motion.div
+            key="project-tab-overview"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={VIEW_SWITCH_TRANSITION}
+            className="grid grid-cols-1 gap-6 lg:grid-cols-12"
+          >
+            <div className="flex flex-col gap-6 lg:col-span-8">
+              <ProjectTasksSection
+                tasks={project.tasks}
+                onSelectTask={openTaskModal}
+                onAddTask={() => openNewTask()}
+                onAddSubtask={(parentId) => openNewTask(undefined, parentId)}
+              />
 
-            <ProjectNotesCard
+              <ProjectNotesCard
+                projectId={project.id}
+                initialNotes={project.notes}
+              />
+            </div>
+
+            <div className="lg:col-span-4">
+              <ProjectAttributesPanel project={project} />
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="project-tab-milestones"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={VIEW_SWITCH_TRANSITION}
+          >
+            <ProjectMilestonesTab
               projectId={project.id}
-              initialNotes={project.notes}
+              milestones={project.milestones}
+              onAddTaskToMilestone={(milestoneId) => openNewTask(milestoneId)}
             />
-          </div>
-
-          <div className="lg:col-span-4">
-            <ProjectAttributesPanel project={project} />
-          </div>
-        </div>
-      ) : (
-        <ProjectMilestonesTab
-          projectId={project.id}
-          milestones={project.milestones}
-          onAddTaskToMilestone={(milestoneId) => openNewTask(milestoneId)}
-        />
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <TaskDetailModal
         open={modalOpen}

@@ -1,8 +1,10 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { Badge, Card, Icon, IconButton, Input } from "@/components/ui";
+import { CHEVRON_TRANSITION, COLLAPSE_TRANSITION } from "@/lib/motion";
 import { PROJECT_COLOR_DOT, TASK_STATUS_META } from "@/lib/project-constants";
 import { sortProjectActiveTasks } from "@/lib/task-sorting";
 import type {
@@ -43,10 +45,13 @@ function ProjectTaskRowItem({
             aria-label={expanded ? "Tutup sub-tugas" : "Lihat sub-tugas"}
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-ink-muted hover:bg-surface hover:text-ink cursor-pointer"
           >
-            <Icon
-              name={expanded ? "expand_more" : "chevron_right"}
-              size="sm"
-            />
+            <motion.span
+              animate={{ rotate: expanded ? 90 : 0 }}
+              transition={CHEVRON_TRANSITION}
+              className="inline-flex items-center justify-center"
+            >
+              <Icon name="chevron_right" size="sm" />
+            </motion.span>
           </button>
         )}
 
@@ -94,36 +99,48 @@ function ProjectTaskRowItem({
         </button>
       </div>
 
-      {hasChildren && expanded && (
-        <div className="mb-1.5 ml-4 flex flex-col gap-1 border-l-2 border-border-soft pl-3">
-          {subtasks.map((sub) => {
-            const subStatusMeta = TASK_STATUS_META[sub.status];
-            return (
-              <button
-                key={sub.id}
-                type="button"
-                onClick={() => onSelectTask(sub)}
-                className="group flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-hover cursor-pointer"
-              >
-                <span
-                  className={cn(
-                    "min-w-0 flex-1 truncate font-sans text-[12px] font-semibold group-hover:text-primary",
-                    sub.status === "DONE" ? "text-ink-muted line-through" : "text-ink"
-                  )}
-                >
-                  {sub.title}
-                </span>
-                <div className="flex shrink-0 items-center gap-1">
-                  {sub.isArchived && <Badge variant="neutral">Arsip</Badge>}
-                  <Badge variant={subStatusMeta.badgeVariant}>
-                    {subStatusMeta.label}
-                  </Badge>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {hasChildren && expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={COLLAPSE_TRANSITION}
+            className="overflow-hidden"
+          >
+            <div className="mb-1.5 ml-4 flex flex-col gap-1 border-l-2 border-border-soft pl-3">
+              {subtasks.map((sub) => {
+                const subStatusMeta = TASK_STATUS_META[sub.status];
+                return (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => onSelectTask(sub)}
+                    className="group flex w-full items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-surface-hover cursor-pointer"
+                  >
+                    <span
+                      className={cn(
+                        "min-w-0 flex-1 truncate font-sans text-[12px] font-semibold group-hover:text-primary",
+                        sub.status === "DONE"
+                          ? "text-ink-muted line-through"
+                          : "text-ink"
+                      )}
+                    >
+                      {sub.title}
+                    </span>
+                    <div className="flex shrink-0 items-center gap-1">
+                      {sub.isArchived && <Badge variant="neutral">Arsip</Badge>}
+                      <Badge variant={subStatusMeta.badgeVariant}>
+                        {subStatusMeta.label}
+                      </Badge>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -256,31 +273,44 @@ export function ProjectTasksColumn({
               className="flex w-full items-center justify-between rounded-xl px-2 py-1.5 font-display text-[13px] font-bold text-ink-muted transition-colors hover:bg-surface-hover hover:text-ink cursor-pointer"
             >
               <span className="flex items-center gap-1.5">
-                <Icon
-                  name={showDone ? "expand_more" : "chevron_right"}
-                  size="sm"
-                />
+                <motion.span
+                  animate={{ rotate: showDone ? 90 : 0 }}
+                  transition={CHEVRON_TRANSITION}
+                  className="inline-flex items-center justify-center"
+                >
+                  <Icon name="chevron_right" size="sm" />
+                </motion.span>
                 Selesai ({doneTasks.length})
               </span>
               <Badge variant="success">Tuntas</Badge>
             </button>
 
-            {showDone && (
-              <div className="mt-1.5 flex flex-col divide-y divide-border-soft">
-                {doneTasks.map((task) => (
-                  <ProjectTaskRowItem
-                    key={task.id}
-                    task={task}
-                    subtasks={sortProjectActiveTasks(
-                      subtasksByParent.get(task.id) ?? []
-                    )}
-                    expanded={expandedIds.has(task.id)}
-                    onToggleExpand={() => toggleExpand(task.id)}
-                    onSelectTask={onSelectTask}
-                  />
-                ))}
-              </div>
-            )}
+            <AnimatePresence initial={false}>
+              {showDone && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={COLLAPSE_TRANSITION}
+                  className="overflow-hidden"
+                >
+                  <div className="mt-1.5 flex flex-col divide-y divide-border-soft">
+                    {doneTasks.map((task) => (
+                      <ProjectTaskRowItem
+                        key={task.id}
+                        task={task}
+                        subtasks={sortProjectActiveTasks(
+                          subtasksByParent.get(task.id) ?? []
+                        )}
+                        expanded={expandedIds.has(task.id)}
+                        onToggleExpand={() => toggleExpand(task.id)}
+                        onSelectTask={onSelectTask}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </div>

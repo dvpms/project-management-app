@@ -1,7 +1,9 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { Badge, Button, Card, Icon } from "@/components/ui";
+import { SPRING_PILL } from "@/lib/motion";
 import {
   PROJECT_COLOR_DOT,
   PROJECT_STATUS_META,
@@ -50,21 +52,47 @@ export function ProjectDetailHeader({
           Semua Proyek
         </Link>
 
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant={activeTab === "overview" ? "primary" : "outline"}
-            onClick={() => onTabChange("overview")}
-          >
-            Tugas &amp; Catatan ({activeTasksCount})
-          </Button>
-          <Button
-            size="sm"
-            variant={activeTab === "milestones" ? "primary" : "outline"}
-            onClick={() => onTabChange("milestones")}
-          >
-            Milestones ({milestonesCount})
-          </Button>
+        <div
+          role="tablist"
+          aria-label="Bagian detail proyek"
+          className="flex rounded-2xl border-2 border-border-soft border-b-[4px] border-b-border-lip bg-surface-container p-1"
+        >
+          {(
+            [
+              {
+                id: "overview" as const,
+                label: `Tugas & Catatan (${activeTasksCount})`,
+              },
+              {
+                id: "milestones" as const,
+                label: `Milestones (${milestonesCount})`,
+              },
+            ] as const
+          ).map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => onTabChange(tab.id)}
+                className={cn(
+                  "relative rounded-xl px-3.5 py-1.5 font-display text-[13px] font-bold transition-colors duration-150 cursor-pointer",
+                  isActive ? "text-on-primary" : "text-ink-muted hover:text-ink"
+                )}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="project-detail-tab-pill"
+                    transition={SPRING_PILL}
+                    className="absolute inset-0 rounded-xl bg-primary"
+                  />
+                )}
+                <span className="relative z-10">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 

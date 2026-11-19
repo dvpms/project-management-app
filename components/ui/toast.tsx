@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import {
   createContext,
   useCallback,
@@ -10,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { Icon } from "@/components/ui/icon";
+import { TOAST_TRANSITION } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export type ToastVariant = "success" | "error" | "warning" | "info";
@@ -110,45 +112,57 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         aria-atomic="false"
         className="pointer-events-none fixed inset-x-4 top-4 z-50 flex flex-col gap-2.5 sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-6 sm:w-[360px]"
       >
-        {toasts.map((toast) => {
-          const style = VARIANT_STYLES[toast.variant];
-          return (
-            <div
-              key={toast.id}
-              role="status"
-              className={cn(
-                "pointer-events-auto flex items-start gap-3 rounded-2xl border-2 border-b-[5px] p-3.5 transition-all duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]",
-                style.container
-              )}
-            >
-              <Icon name={style.icon} size="md" filled className="mt-0.5 shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="font-display text-[15px] font-bold leading-5">
-                  {toast.title}
-                </p>
-                {toast.description && (
-                  <p className="mt-0.5 font-sans text-[13px] font-medium leading-[18px]">
-                    {toast.description}
-                  </p>
+        <AnimatePresence initial={false}>
+          {toasts.map((toast) => {
+            const style = VARIANT_STYLES[toast.variant];
+            return (
+              <motion.div
+                key={toast.id}
+                layout
+                initial={{ opacity: 0, y: -12, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, x: 28, scale: 0.96 }}
+                transition={TOAST_TRANSITION}
+                role="status"
+                className={cn(
+                  "pointer-events-auto flex items-start gap-3 rounded-2xl border-2 border-b-[5px] p-3.5",
+                  style.container
                 )}
-              </div>
-              <button
-                type="button"
-                onClick={() => dismissToast(toast.id)}
-                aria-label="Tutup notifikasi"
-                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border-2 border-[#E2E8F0] border-b-[3px] border-b-[#CBD5E1] bg-[#FFFFFF] text-[#0F172A] transition-transform duration-100 cursor-pointer active:translate-y-[1px] active:border-b-2"
               >
-                <Icon name="close" size="sm" />
-              </button>
-            </div>
-          );
-        })}
+                <Icon
+                  name={style.icon}
+                  size="md"
+                  filled
+                  className="mt-0.5 shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-[15px] font-bold leading-5">
+                    {toast.title}
+                  </p>
+                  {toast.description && (
+                    <p className="mt-0.5 font-sans text-[13px] font-medium leading-[18px]">
+                      {toast.description}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => dismissToast(toast.id)}
+                  aria-label="Tutup notifikasi"
+                  className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border-2 border-[#E2E8F0] border-b-[3px] border-b-[#CBD5E1] bg-[#FFFFFF] text-[#0F172A] transition-transform duration-100 cursor-pointer active:translate-y-[1px] active:border-b-2"
+                >
+                  <Icon name="close" size="sm" />
+                </button>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
     </ToastContext.Provider>
   );
 }
 
-export function useToast(): ToastContextValue {
+export function useToast() {
   const context = useContext(ToastContext);
   if (!context) {
     throw new Error("useToast harus digunakan di dalam ToastProvider");

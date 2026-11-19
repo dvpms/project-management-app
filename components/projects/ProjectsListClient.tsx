@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { updateProjectStatusAction } from "@/actions/project-actions";
@@ -18,6 +19,7 @@ import {
   Select,
   useToast,
 } from "@/components/ui";
+import { PROGRESS_TRANSITION, VIEW_SWITCH_TRANSITION } from "@/lib/motion";
 import {
   PROJECT_COLOR_DOT,
   PROJECT_STATUS_META,
@@ -122,75 +124,93 @@ export function ProjectsListClient({
         </Card>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((project) => {
-            const pct =
-              project.totalTasks > 0
-                ? Math.round((project.doneTasks / project.totalTasks) * 100)
-                : 0;
-            const statusMeta = PROJECT_STATUS_META[project.status];
+          <AnimatePresence mode="popLayout" initial={false}>
+            {filtered.map((project) => {
+              const pct =
+                project.totalTasks > 0
+                  ? Math.round((project.doneTasks / project.totalTasks) * 100)
+                  : 0;
+              const statusMeta = PROJECT_STATUS_META[project.status];
 
-            return (
-              <Card
-                key={project.id}
-                interactive
-                onClick={() => router.push(`/projects/${project.id}`)}
-                className="group flex flex-col justify-between p-1"
-              >
-                <CardHeader className="pb-1">
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        "h-3.5 w-3.5 shrink-0 rounded-full",
-                        PROJECT_COLOR_DOT[project.color]
-                      )}
-                    />
-                    <CardTitle className="truncate group-hover:text-primary">
-                      {project.name}
-                    </CardTitle>
-                  </div>
-                  <Badge variant={statusMeta.badgeVariant}>{statusMeta.label}</Badge>
-                </CardHeader>
-
-                <CardContent className="flex flex-col gap-4 py-4">
-                  <p className="line-clamp-2 min-h-[36px] font-sans text-[13px] font-medium text-ink-muted">
-                    {project.summary || "Belum ada deskripsi singkat."}
-                  </p>
-
-                  <div className="flex flex-col gap-1.5">
-                    <div className="flex justify-between font-mono text-[11px] font-bold text-ink">
-                      <span>Progres Tugas</span>
-                      <span>
-                        {project.doneTasks}/{project.totalTasks} ({pct}%)
-                      </span>
-                    </div>
-                    <div className="h-3 w-full overflow-hidden rounded-full border border-border-soft bg-surface-subtle">
-                      <div
-                        className="h-full rounded-full bg-[#16A34A]"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-
-                <CardFooter onClick={(e) => e.stopPropagation()}>
-                  <Select
-                    aria-label={`Ubah status ${project.name}`}
-                    value={project.status}
-                    onChange={(e) =>
-                      handleStatusChange(project.id, e.target.value as ProjectStatus)
-                    }
-                    className="h-9 rounded-xl px-2.5 py-1 text-[13px]"
+              return (
+                <motion.div
+                  key={project.id}
+                  layout="position"
+                  initial={{ opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.97 }}
+                  transition={VIEW_SWITCH_TRANSITION}
+                  className="h-full"
+                >
+                  <Card
+                    interactive
+                    onClick={() => router.push(`/projects/${project.id}`)}
+                    className="group flex h-full flex-col justify-between p-1"
                   >
-                    <option value="ACTIVE">Aktif</option>
-                    <option value="ON_HOLD">Ditunda</option>
-                    <option value="COMPLETED">Selesai</option>
-                    <option value="ARCHIVED">Diarsipkan</option>
-                  </Select>
-                </CardFooter>
-              </Card>
-            );
-          })}
+                    <CardHeader className="pb-1">
+                      <div className="flex min-w-0 items-center gap-2.5">
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            "h-3.5 w-3.5 shrink-0 rounded-full",
+                            PROJECT_COLOR_DOT[project.color]
+                          )}
+                        />
+                        <CardTitle className="truncate group-hover:text-primary">
+                          {project.name}
+                        </CardTitle>
+                      </div>
+                      <Badge variant={statusMeta.badgeVariant}>
+                        {statusMeta.label}
+                      </Badge>
+                    </CardHeader>
+
+                    <CardContent className="flex flex-col gap-4 py-4">
+                      <p className="line-clamp-2 min-h-[36px] font-sans text-[13px] font-medium text-ink-muted">
+                        {project.summary || "Belum ada deskripsi singkat."}
+                      </p>
+
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex justify-between font-mono text-[11px] font-bold text-ink">
+                          <span>Progres Tugas</span>
+                          <span>
+                            {project.doneTasks}/{project.totalTasks} ({pct}%)
+                          </span>
+                        </div>
+                        <div className="h-3 w-full overflow-hidden rounded-full border border-border-soft bg-surface-subtle">
+                          <motion.div
+                            className="h-full rounded-full bg-[#16A34A]"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={PROGRESS_TRANSITION}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+
+                    <CardFooter onClick={(e) => e.stopPropagation()}>
+                      <Select
+                        aria-label={`Ubah status ${project.name}`}
+                        value={project.status}
+                        onChange={(e) =>
+                          handleStatusChange(
+                            project.id,
+                            e.target.value as ProjectStatus
+                          )
+                        }
+                        className="h-9 rounded-xl px-2.5 py-1 text-[13px]"
+                      >
+                        <option value="ACTIVE">Aktif</option>
+                        <option value="ON_HOLD">Ditunda</option>
+                        <option value="COMPLETED">Selesai</option>
+                        <option value="ARCHIVED">Diarsipkan</option>
+                      </Select>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         </div>
       )}
 
