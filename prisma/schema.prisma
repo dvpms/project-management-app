@@ -134,6 +134,7 @@ model Task {
   id          String       @id @default(cuid())
   projectId   String       @map("project_id")
   milestoneId String?      @map("milestone_id")
+  parentId    String?      @map("parent_id")
   userId      String       @map("user_id")
   title       String
   description String?      @db.Text
@@ -148,10 +149,13 @@ model Task {
 
   project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   milestone Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  parent    Task?      @relation("TaskSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks  Task[]     @relation("TaskSubtasks")
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, isArchived, status])
   @@index([projectId, isArchived, status])
   @@index([milestoneId])
+  @@index([parentId])
   @@map("tasks")
 }

@@ -12,6 +12,7 @@ export const TASK_PRIORITY_VALUES = ["LOW", "MEDIUM", "HIGH"] as const;
 export const createTaskSchema = z.object({
   projectId: z.string().min(1, "Proyek wajib dipilih."),
   milestoneId: z.string().trim().optional().nullable(),
+  parentId: z.string().trim().optional().nullable(),
   title: z
     .string()
     .trim()

@@ -10,13 +10,17 @@ import {
 } from "@/actions/task-actions";
 import type { TaskStatus } from "@/app/generated/prisma/enums";
 import { SpaceKanbanBoard } from "@/components/kanban/SpaceKanbanBoard";
-import { TaskDetailModal } from "@/components/tasks/TaskDetailModal";
+import {
+  TaskDetailModal,
+  type EditableTaskItem,
+} from "@/components/tasks/TaskDetailModal";
 import { Badge, Icon, useConfirm, useToast } from "@/components/ui";
 import { ActiveProjectsBoard } from "@/components/workspace/ActiveProjectsBoard";
 import {
   WorkspaceToolbar,
   type WorkspaceLayoutMode,
 } from "@/components/workspace/WorkspaceToolbar";
+import { recomputeOptimisticParents } from "@/lib/task-helpers";
 import type {
   DashboardTaskItem,
   DashboardWorkspaceData,
@@ -33,23 +37,44 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
   const [projectFilter, setProjectFilter] = useState<string>("ALL");
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<DashboardTaskItem | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingSnapshot, setEditingSnapshot] =
+    useState<EditableTaskItem | null>(null);
   const [defaultStatus, setDefaultStatus] = useState<TaskStatus>("BACKLOG");
   const [defaultProjectId, setDefaultProjectId] = useState<string | undefined>(
     undefined
   );
 
-  const kanbanTasks =
-    projectFilter === "ALL"
-      ? optimisticTasks
-      : optimisticTasks.filter((t) => t.projectId === projectFilter);
+  const editingTask = editingTaskId
+    ? (optimisticTasks.find((t) => t.id === editingTaskId) ??
+      (editingSnapshot?.id === editingTaskId ? editingSnapshot : null))
+    : null;
+
+  const parentIdsWithChildren = new Set(
+    optimisticTasks
+      .map((t) => t.parentId)
+      .filter((id): id is string => Boolean(id))
+  );
+
+  const kanbanTasks = optimisticTasks.filter((t) => {
+    if (t.isArchived) return false;
+    if (parentIdsWithChildren.has(t.id)) return false;
+    return projectFilter === "ALL" ? true : t.projectId === projectFilter;
+  });
 
   const openNewTaskModal = (status: TaskStatus = "BACKLOG") => {
-    setEditingTask(null);
+    setEditingTaskId(null);
+    setEditingSnapshot(null);
     setDefaultStatus(status);
     setDefaultProjectId(
       projectFilter !== "ALL" ? projectFilter : data.activeProjects[0]?.id
     );
+    setModalOpen(true);
+  };
+
+  const openTaskModal = (task: EditableTaskItem) => {
+    setEditingTaskId(task.id);
+    setEditingSnapshot(task);
     setModalOpen(true);
   };
 
@@ -60,7 +85,9 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
     nextKanbanSnapshot: DashboardTaskItem[]
   ) => {
     const snapshotMap = new Map(nextKanbanSnapshot.map((t) => [t.id, t]));
-    const mergedTasks = optimisticTasks.map((t) => snapshotMap.get(t.id) ?? t);
+    const mergedTasks = recomputeOptimisticParents(
+      optimisticTasks.map((t) => snapshotMap.get(t.id) ?? t)
+    );
 
     startTransition(async () => {
       setOptimisticTasks(mergedTasks);
@@ -87,6 +114,8 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
       projectId,
       milestoneId: null,
       milestoneTitle: null,
+      parentId: null,
+      parentTitle: null,
       title,
       description: "",
       status: "BACKLOG",
@@ -137,8 +166,14 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
     if (!ok) return;
 
     const doneIds = new Set(doneTasks.map((t) => t.id));
+    const nextTasks = recomputeOptimisticParents(
+      optimisticTasks.map((t) =>
+        doneIds.has(t.id) ? { ...t, isArchived: true } : t
+      )
+    );
+
     startTransition(async () => {
-      setOptimisticTasks(optimisticTasks.filter((t) => !doneIds.has(t.id)));
+      setOptimisticTasks(nextTasks);
       const res = await archiveDoneTasksAction(
         projectFilter !== "ALL" ? projectFilter : null
       );
@@ -190,11 +225,9 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
           <SpaceKanbanBoard
             tasks={kanbanTasks}
             projects={data.activeProjects}
+            layoutMode={layoutMode}
             onCommitMove={handleCommitMove}
-            onSelectTask={(task) => {
-              setEditingTask(task);
-              setModalOpen(true);
-            }}
+            onSelectTask={openTaskModal}
             onArchiveAllDone={handleArchiveAllDone}
             onCreateTaskInStatus={(status) => openNewTaskModal(status)}
           />
@@ -226,10 +259,7 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
             projects={data.activeProjects}
             tasks={optimisticTasks}
             onQuickAddTask={handleQuickAddTask}
-            onSelectTask={(task) => {
-              setEditingTask(task);
-              setModalOpen(true);
-            }}
+            onSelectTask={openTaskModal}
           />
         </section>
       )}
@@ -237,10 +267,12 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
       <TaskDetailModal
         open={modalOpen}
         task={editingTask}
+        allTasks={optimisticTasks}
         defaultProjectId={defaultProjectId}
         defaultStatus={defaultStatus}
         projects={data.allProjects}
         milestones={data.milestones}
+        onSelectTask={openTaskModal}
         onClose={() => setModalOpen(false)}
         onSuccess={() => router.refresh()}
       />

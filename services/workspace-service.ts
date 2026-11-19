@@ -16,6 +16,8 @@ export interface DashboardTaskItem {
   projectId: string;
   milestoneId: string | null;
   milestoneTitle: string | null;
+  parentId: string | null;
+  parentTitle: string | null;
   title: string;
   description: string;
   status: TaskStatus;
@@ -49,12 +51,16 @@ export async function getDashboardWorkspaceData(
     prisma.task.findMany({
       where: {
         userId,
-        isArchived: false,
         project: { status: "ACTIVE" },
+        OR: [
+          { isArchived: false },
+          { parentId: { not: null }, parent: { isArchived: false } },
+        ],
       },
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
       include: {
         milestone: { select: { title: true } },
+        parent: { select: { title: true } },
       },
     }),
   ]);
@@ -76,6 +82,8 @@ export async function getDashboardWorkspaceData(
       projectId: t.projectId,
       milestoneId: t.milestoneId,
       milestoneTitle: t.milestone?.title ?? null,
+      parentId: t.parentId,
+      parentTitle: t.parent?.title ?? null,
       title: t.title,
       description: t.description ?? "",
       status: t.status,

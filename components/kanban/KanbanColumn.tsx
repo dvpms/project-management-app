@@ -17,6 +17,7 @@ export function KanbanColumn({
   dotColor,
   tasks,
   projectsById,
+  scrollAreaClassName = "max-h-[520px]",
   onSelectTask,
   onArchiveAllDone,
   onQuickCreate,
@@ -26,6 +27,7 @@ export function KanbanColumn({
   dotColor: string;
   tasks: DashboardTaskItem[];
   projectsById: Map<string, CardProjectInfo>;
+  scrollAreaClassName?: string;
   onSelectTask: (task: DashboardTaskItem) => void;
   onArchiveAllDone: () => void;
   onQuickCreate: () => void;
@@ -39,11 +41,11 @@ export function KanbanColumn({
     <SurfaceColumn
       tone="column"
       className={cn(
-        "flex min-h-[320px] min-w-0 flex-1 flex-col gap-4 p-5 transition-colors duration-100 md:min-w-[260px]",
+        "flex min-w-0 flex-1 flex-col gap-4 p-5 transition-colors duration-100 md:min-w-[260px]",
         isOver && "border-primary bg-surface-column-over"
       )}
     >
-      <div className="flex items-center justify-between gap-2 pb-1">
+      <div className="flex shrink-0 items-center justify-between gap-2 pb-1">
         <div className="flex items-center gap-2.5">
           <span
             aria-hidden="true"
@@ -80,13 +82,19 @@ export function KanbanColumn({
         )}
       </div>
 
-      <div ref={setNodeRef} className="flex flex-1 flex-col gap-3.5">
+      <div
+        ref={setNodeRef}
+        className={cn(
+          "flex flex-1 flex-col gap-3.5 overflow-y-auto overscroll-contain pr-1",
+          scrollAreaClassName
+        )}
+      >
         <SortableContext
           items={tasks.map((t) => t.id)}
           strategy={verticalListSortingStrategy}
         >
           {tasks.length === 0 ? (
-            <div className="flex flex-1 items-center justify-center rounded-2xl border-2 border-dashed border-border-soft bg-surface p-6 text-center">
+            <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-2xl border-2 border-dashed border-border-soft bg-surface p-6 text-center">
               <p className="font-sans text-[12px] font-semibold text-ink-muted">
                 Seret kartu ke sini
               </p>

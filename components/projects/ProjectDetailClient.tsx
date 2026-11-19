@@ -26,17 +26,44 @@ export function ProjectDetailClient({
     "overview"
   );
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<EditableTaskItem | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingSnapshot, setEditingSnapshot] =
+    useState<EditableTaskItem | null>(null);
+  const [defaultParentId, setDefaultParentId] = useState<string | undefined>(
+    undefined
+  );
   const [defaultMilestoneId, setDefaultMilestoneId] = useState<
     string | undefined
   >(undefined);
 
-  const activeTasksCount = project.tasks.filter((t) => !t.isArchived).length;
-  const doneTasksCount = project.tasks.filter((t) => t.status === "DONE").length;
+  const editingTask = editingTaskId
+    ? (project.tasks.find((t) => t.id === editingTaskId) ??
+      (editingSnapshot?.id === editingTaskId ? editingSnapshot : null))
+    : null;
 
-  const openNewTask = (milestoneId?: string) => {
-    setEditingTask(null);
+  const parentIds = new Set(
+    project.tasks
+      .map((t) => t.parentId)
+      .filter((id): id is string => Boolean(id))
+  );
+  const leafTasks = project.tasks.filter((t) => !parentIds.has(t.id));
+
+  const activeTasksCount = leafTasks.filter((t) => !t.isArchived).length;
+  const doneTasksCount = leafTasks.filter((t) => t.status === "DONE").length;
+
+  const openNewTask = (milestoneId?: string, parentId?: string) => {
+    setEditingTaskId(null);
+    setEditingSnapshot(null);
     setDefaultMilestoneId(milestoneId);
+    setDefaultParentId(parentId);
+    setModalOpen(true);
+  };
+
+  const openTaskModal = (task: EditableTaskItem) => {
+    setEditingTaskId(task.id);
+    setEditingSnapshot(task);
+    setDefaultParentId(undefined);
+    setDefaultMilestoneId(undefined);
     setModalOpen(true);
   };
 
@@ -46,7 +73,7 @@ export function ProjectDetailClient({
         project={project}
         activeTab={activeTab}
         activeTasksCount={activeTasksCount}
-        totalTasksCount={project.tasks.length}
+        totalTasksCount={leafTasks.length}
         doneTasksCount={doneTasksCount}
         milestonesCount={project.milestones.length}
         onTabChange={setActiveTab}
@@ -58,12 +85,9 @@ export function ProjectDetailClient({
           <div className="flex flex-col gap-6 lg:col-span-8">
             <ProjectTasksSection
               tasks={project.tasks}
-              onSelectTask={(task) => {
-                setEditingTask(task);
-                setDefaultMilestoneId(undefined);
-                setModalOpen(true);
-              }}
+              onSelectTask={openTaskModal}
               onAddTask={() => openNewTask()}
+              onAddSubtask={(parentId) => openNewTask(undefined, parentId)}
             />
 
             <ProjectNotesCard
@@ -87,14 +111,17 @@ export function ProjectDetailClient({
       <TaskDetailModal
         open={modalOpen}
         task={editingTask}
+        allTasks={project.tasks}
         defaultProjectId={project.id}
         defaultMilestoneId={defaultMilestoneId}
+        defaultParentId={defaultParentId}
         projects={allProjects}
         milestones={project.milestones.map((m) => ({
           id: m.id,
           projectId: project.id,
           title: m.title,
         }))}
+        onSelectTask={openTaskModal}
         onClose={() => setModalOpen(false)}
         onSuccess={() => router.refresh()}
       />

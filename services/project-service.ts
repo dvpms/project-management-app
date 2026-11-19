@@ -46,6 +46,8 @@ export interface ProjectDetailData {
     projectId: string;
     milestoneId: string | null;
     milestoneTitle: string | null;
+    parentId: string | null;
+    parentTitle: string | null;
     title: string;
     description: string;
     status: "BACKLOG" | "ON_PROGRESS" | "REVIEW" | "DONE";
@@ -64,21 +66,30 @@ export async function listUserProjectsWithCounts(
     orderBy: [{ updatedAt: "desc" }],
     include: {
       tasks: {
-        select: { status: true },
+        select: { id: true, status: true, parentId: true },
       },
     },
   });
 
-  return projects.map((project) => ({
-    id: project.id,
-    name: project.name,
-    summary: project.summary ?? "",
-    status: project.status,
-    color: resolveProjectTone(project.color),
-    totalTasks: project.tasks.length,
-    doneTasks: project.tasks.filter((t) => t.status === "DONE").length,
-    updatedAt: project.updatedAt.toISOString(),
-  }));
+  return projects.map((project) => {
+    const parentIds = new Set(
+      project.tasks
+        .map((t) => t.parentId)
+        .filter((id): id is string => Boolean(id))
+    );
+    const leafTasks = project.tasks.filter((t) => !parentIds.has(t.id));
+
+    return {
+      id: project.id,
+      name: project.name,
+      summary: project.summary ?? "",
+      status: project.status,
+      color: resolveProjectTone(project.color),
+      totalTasks: leafTasks.length,
+      doneTasks: leafTasks.filter((t) => t.status === "DONE").length,
+      updatedAt: project.updatedAt.toISOString(),
+    };
+  });
 }
 
 export async function getProjectDetailById(
@@ -95,12 +106,19 @@ export async function getProjectDetailById(
         orderBy: [{ order: "asc" }, { createdAt: "desc" }],
         include: {
           milestone: { select: { title: true } },
+          parent: { select: { title: true } },
         },
       },
     },
   });
 
   if (!project) return null;
+
+  const parentIds = new Set(
+    project.tasks
+      .map((t) => t.parentId)
+      .filter((id): id is string => Boolean(id))
+  );
 
   return {
     id: project.id,
@@ -111,7 +129,9 @@ export async function getProjectDetailById(
     color: resolveProjectTone(project.color),
     attributes: parseProjectAttributes(project.attributes),
     milestones: project.milestones.map((m) => {
-      const linked = project.tasks.filter((t) => t.milestoneId === m.id);
+      const linked = project.tasks.filter(
+        (t) => t.milestoneId === m.id && !parentIds.has(t.id)
+      );
       return {
         id: m.id,
         title: m.title,
@@ -126,6 +146,8 @@ export async function getProjectDetailById(
       projectId: t.projectId,
       milestoneId: t.milestoneId,
       milestoneTitle: t.milestone?.title ?? null,
+      parentId: t.parentId,
+      parentTitle: t.parent?.title ?? null,
       title: t.title,
       description: t.description ?? "",
       status: t.status,
