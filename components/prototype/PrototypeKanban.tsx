@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -261,6 +261,7 @@ export function PrototypeKanban({
   onArchiveAllDone,
   onCreateTaskInStatus,
 }: PrototypeKanbanProps) {
+  const dndContextId = useId();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -334,6 +335,7 @@ export function PrototypeKanban({
 
   return (
     <DndContext
+      id={dndContextId}
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}

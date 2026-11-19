@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -48,6 +48,7 @@ export function SpaceKanbanBoard({
   onArchiveAllDone,
   onCreateTaskInStatus,
 }: SpaceKanbanBoardProps) {
+  const dndContextId = useId();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [dragTasks, setDragTasks] = useState<DashboardTaskItem[] | null>(null);
 
@@ -148,6 +149,7 @@ export function SpaceKanbanBoard({
 
   return (
     <DndContext
+      id={dndContextId}
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
