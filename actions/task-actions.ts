@@ -62,6 +62,9 @@ export async function updateTaskAction(
     revalidatePath("/");
     revalidatePath("/projects");
     revalidatePath(`/projects/${updated.projectId}`);
+    if (updated.previousProjectId !== updated.projectId) {
+      revalidatePath(`/projects/${updated.previousProjectId}`);
+    }
     return { ok: true };
   } catch (err) {
     console.error("updateTaskAction error:", err);
@@ -79,8 +82,12 @@ export async function moveTaskAction(
       return { ok: false, error: parsed.error.issues[0]?.message };
     }
 
-    await moveTask(userId, parsed.data);
+    const projectIds = await moveTask(userId, parsed.data);
     revalidatePath("/");
+    revalidatePath("/projects");
+    for (const pid of projectIds) {
+      revalidatePath(`/projects/${pid}`);
+    }
     return { ok: true };
   } catch (err) {
     console.error("moveTaskAction error:", err);
@@ -98,11 +105,18 @@ export async function archiveDoneTasksAction(
       return { ok: false, error: parsed.error.issues[0]?.message };
     }
 
-    const count = await archiveDoneTasks(userId, parsed.data.projectId);
+    const { count, projectIds } = await archiveDoneTasks(
+      userId,
+      parsed.data.projectId
+    );
     revalidatePath("/");
     revalidatePath("/projects");
+    const affectedProjects = new Set<string>(projectIds);
     if (parsed.data.projectId) {
-      revalidatePath(`/projects/${parsed.data.projectId}`);
+      affectedProjects.add(parsed.data.projectId);
+    }
+    for (const pid of affectedProjects) {
+      revalidatePath(`/projects/${pid}`);
     }
     return { ok: true, data: { count } };
   } catch (err) {
@@ -118,6 +132,7 @@ export async function archiveSingleTaskAction(
     const userId = await requireUserId();
     const projectId = await archiveSingleTask(userId, taskId);
     revalidatePath("/");
+    revalidatePath("/projects");
     revalidatePath(`/projects/${projectId}`);
     return { ok: true };
   } catch (err) {
@@ -133,6 +148,7 @@ export async function restoreTaskAction(
     const userId = await requireUserId();
     const projectId = await restoreTask(userId, taskId);
     revalidatePath("/");
+    revalidatePath("/projects");
     revalidatePath(`/projects/${projectId}`);
     return { ok: true };
   } catch (err) {

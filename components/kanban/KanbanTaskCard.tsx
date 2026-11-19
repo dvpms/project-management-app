@@ -4,6 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Badge, Card, CardContent, Icon } from "@/components/ui";
 import { PRIORITY_META, type ProjectColorTone } from "@/lib/project-constants";
+import { stripMarkdownToPlainText } from "@/lib/task-helpers";
 import type { DashboardTaskItem } from "@/services/workspace-service";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,7 @@ export function KanbanTaskCardContent({
 }) {
   const priorityMeta = PRIORITY_META[task.priority];
   const overdue = isTaskOverdue(task.dueDate, task.status);
+  const descriptionPreview = stripMarkdownToPlainText(task.description);
 
   return (
     <Card
@@ -39,7 +41,7 @@ export function KanbanTaskCardContent({
         isOverlay && "rotate-1 border-primary border-b-primary-lip"
       )}
     >
-      <CardContent className="flex flex-col gap-3 p-0">
+      <CardContent className="flex flex-col gap-2.5 p-0">
         <div className="flex items-center justify-between gap-2">
           {project ? (
             <Badge variant={project.color} className="max-w-[150px] truncate">
@@ -51,9 +53,26 @@ export function KanbanTaskCardContent({
           <Badge variant={priorityMeta.badgeVariant}>{priorityMeta.label}</Badge>
         </div>
 
+        {task.parentTitle && (
+          <div className="flex items-center gap-1.5 font-mono text-[11px] font-bold text-ink-muted">
+            <Icon
+              name="subdirectory_arrow_right"
+              size="sm"
+              className="shrink-0 text-[14px] text-primary"
+            />
+            <span className="truncate">{task.parentTitle}</span>
+          </div>
+        )}
+
         <p className="font-display text-[15px] font-bold leading-snug text-ink">
           {task.title}
         </p>
+
+        {descriptionPreview && (
+          <p className="line-clamp-2 font-sans text-[12px] font-medium leading-[1.45] text-ink-muted">
+            {descriptionPreview}
+          </p>
+        )}
 
         {(task.dueDate || task.milestoneTitle) && (
           <div className="flex flex-wrap items-center gap-3 pt-0.5 font-mono text-[11px] font-bold text-ink-muted">

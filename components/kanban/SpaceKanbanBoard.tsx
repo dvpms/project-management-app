@@ -20,12 +20,14 @@ import {
   KanbanTaskCardContent,
   type CardProjectInfo,
 } from "@/components/kanban/KanbanTaskCard";
+import type { WorkspaceLayoutMode } from "@/components/workspace/WorkspaceToolbar";
 import { KANBAN_COLUMNS } from "@/lib/project-constants";
 import type { DashboardTaskItem } from "@/services/workspace-service";
 
 interface SpaceKanbanBoardProps {
   tasks: DashboardTaskItem[];
   projects: CardProjectInfo[];
+  layoutMode?: WorkspaceLayoutMode;
   onCommitMove: (
     taskId: string,
     targetStatus: TaskStatus,
@@ -40,6 +42,7 @@ interface SpaceKanbanBoardProps {
 export function SpaceKanbanBoard({
   tasks,
   projects,
+  layoutMode = "split",
   onCommitMove,
   onSelectTask,
   onArchiveAllDone,
@@ -138,6 +141,11 @@ export function SpaceKanbanBoard({
     setDragTasks(null);
   };
 
+  const scrollAreaClassName =
+    layoutMode === "kanban"
+      ? "max-h-[calc(100vh-240px)] min-h-[420px]"
+      : "max-h-[520px]";
+
   return (
     <DndContext
       sensors={sensors}
@@ -156,6 +164,7 @@ export function SpaceKanbanBoard({
             dotColor={col.dotColor}
             tasks={getColumnTasks(displayedTasks, col.id)}
             projectsById={projectsById}
+            scrollAreaClassName={scrollAreaClassName}
             onSelectTask={onSelectTask}
             onArchiveAllDone={onArchiveAllDone}
             onQuickCreate={() => onCreateTaskInStatus(col.id)}
