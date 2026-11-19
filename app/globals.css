@@ -1,26 +1,241 @@
 @import "tailwindcss";
+@import "material-symbols/rounded.css" layer(base);
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+:root,
+[data-theme="sky-blue"] {
+  --surface: #f7f8fc;
+  --surface-column: #eef2f6;
+  --surface-column-over: #e8effb;
+  --surface-container: #ffffff;
+  --surface-subtle: #f1f5f9;
+  --surface-hover: #f8fafc;
+  --border-soft: #e2e8f0;
+  --border-lip: #cbd5e1;
+  --border-column: #dce4ee;
+
+  --ink: #0f172a;
+  --ink-muted: #64748b;
+  --outline-focus: #2563eb;
+
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-lip: #1d4ed8;
+  --on-primary: #ffffff;
+
+  --secondary: #f59e0b;
+  --secondary-lip: #d97706;
+  --on-secondary: #ffffff;
+
+  --success: #16a34a;
+  --success-lip: #15803d;
+  --on-success: #ffffff;
+
+  --warning: #d97706;
+  --warning-lip: #b45309;
+  --on-warning: #ffffff;
+
+  --danger: #e11d48;
+  --danger-lip: #be123c;
+  --on-danger: #ffffff;
+
+  --info: #0284c7;
+  --info-lip: #0369a1;
+  --on-info: #ffffff;
+}
+
+[data-theme="emerald-mint"] {
+  --surface: #f3faf6;
+  --surface-column: #e3f3ea;
+  --surface-column-over: #cdebd9;
+  --surface-container: #ffffff;
+  --surface-subtle: #ebf7f0;
+  --surface-hover: #f4fbf7;
+  --border-soft: #cbead9;
+  --border-lip: #9fd4b8;
+  --border-column: #bde3ce;
+
+  --ink: #064e3b;
+  --ink-muted: #3b7a68;
+  --outline-focus: #059669;
+
+  --primary: #059669;
+  --primary-hover: #047857;
+  --primary-lip: #047857;
+  --on-primary: #ffffff;
+}
+
+[data-theme="warm-cream"] {
+  --surface: #faf6ee;
+  --surface-column: #f1e9da;
+  --surface-column-over: #f9e4d4;
+  --surface-container: #fffdf9;
+  --surface-subtle: #f5efe2;
+  --surface-hover: #fcf8f0;
+  --border-soft: #e6dbc7;
+  --border-lip: #d4c4a8;
+  --border-column: #e2d6bf;
+
+  --ink: #292524;
+  --ink-muted: #78716c;
+  --outline-focus: #ea580c;
+
+  --primary: #ea580c;
+  --primary-hover: #c2410c;
+  --primary-lip: #c2410c;
+  --on-primary: #ffffff;
+}
+
+[data-theme="berry-rose"] {
+  --surface: #fff5f7;
+  --surface-column: #fce7ec;
+  --surface-column-over: #fad4de;
+  --surface-container: #ffffff;
+  --surface-subtle: #fdf0f3;
+  --surface-hover: #fff8fa;
+  --border-soft: #fbcfe8;
+  --border-lip: #f49ac1;
+  --border-column: #f9bfd6;
+
+  --ink: #4c0519;
+  --ink-muted: #9f1239;
+  --outline-focus: #e11d48;
+
+  --primary: #e11d48;
+  --primary-hover: #be123c;
+  --primary-lip: #be123c;
+  --on-primary: #ffffff;
+}
+
+[data-theme="pink-purple"] {
+  --surface: #fdf7ff;
+  --surface-column: #f5e8fa;
+  --surface-column-over: #ebd2f7;
+  --surface-container: #ffffff;
+  --surface-subtle: #f9f0fd;
+  --surface-hover: #fefaff;
+  --border-soft: #e9d5ff;
+  --border-lip: #d8b4fe;
+  --border-column: #dfc4fa;
+
+  --ink: #3b0764;
+  --ink-muted: #7e22ce;
+  --outline-focus: #c026d3;
+
+  --primary: #c026d3;
+  --primary-hover: #a21caf;
+  --primary-lip: #a21caf;
+  --on-primary: #ffffff;
+}
+
+[data-theme="sakura-pink"] {
+  --surface: #fff6fa;
+  --surface-column: #fce7f3;
+  --surface-column-over: #fbcfe8;
+  --surface-container: #ffffff;
+  --surface-subtle: #fdf2f8;
+  --surface-hover: #fff9fc;
+  --border-soft: #fbcfe8;
+  --border-lip: #f9a8d4;
+  --border-column: #f9c2e0;
+
+  --ink: #500724;
+  --ink-muted: #9d174d;
+  --outline-focus: #ec4899;
+
+  --primary: #ec4899;
+  --primary-hover: #db2777;
+  --primary-lip: #db2777;
+  --on-primary: #ffffff;
+}
+
+[data-theme="midnight-dark"] {
+  --surface: #0b1120;
+  --surface-column: #162032;
+  --surface-column-over: #1e2d47;
+  --surface-container: #1e293b;
+  --surface-subtle: #263449;
+  --surface-hover: #243146;
+  --border-soft: #334155;
+  --border-lip: #090e1a;
+  --border-column: #263449;
+
+  --ink: #f8fafc;
+  --ink-muted: #94a3b8;
+  --outline-focus: #3b82f6;
+
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-lip: #1d4ed8;
+  --on-primary: #ffffff;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-surface: var(--surface);
+  --color-surface-column: var(--surface-column);
+  --color-surface-column-over: var(--surface-column-over);
+  --color-surface-container: var(--surface-container);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-surface-hover: var(--surface-hover);
+  --color-border-soft: var(--border-soft);
+  --color-border-lip: var(--border-lip);
+  --color-border-column: var(--border-column);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-outline-focus: var(--outline-focus);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-lip: var(--primary-lip);
+  --color-on-primary: var(--on-primary);
+
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+
+  --color-success: var(--success);
+  --color-on-success: var(--on-success);
+  --color-warning: var(--warning);
+  --color-on-warning: var(--on-warning);
+  --color-danger: var(--danger);
+  --color-on-danger: var(--on-danger);
+  --color-info: var(--info);
+  --color-on-info: var(--on-info);
+
+  --font-display: var(--font-nunito), "Plus Jakarta Sans", sans-serif;
+  --font-sans: var(--font-jakarta), sans-serif;
+  --font-mono: var(--font-space-mono), monospace;
+
+  --ease-devflow: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+@layer base {
+  .material-symbols-rounded {
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-variation-settings: "FILL" 0, "wght" 500, "GRAD" 0, "opsz" 24;
+    user-select: none;
+  }
+
+  .material-symbols-rounded.icon-filled {
+    font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 120ms !important;
+    scroll-behavior: auto !important;
+  }
 }
