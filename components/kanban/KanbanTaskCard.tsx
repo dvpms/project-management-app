@@ -133,7 +133,10 @@ export function SortableKanbanTaskCard({
       {...attributes}
       {...listeners}
       onClick={onSelect}
-      className={cn("touch-none outline-none", isDragging && "opacity-35")}
+      className={cn(
+        "shrink-0 touch-none outline-none",
+        isDragging && "opacity-35"
+      )}
     >
       <KanbanTaskCardContent task={task} project={project} />
     </div>

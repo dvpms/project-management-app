@@ -226,7 +226,7 @@ export function ProjectTasksColumn({
       </form>
 
       <div className="flex max-h-[360px] flex-col gap-3 overflow-y-auto overscroll-contain pr-1">
-        <div className="flex flex-col divide-y divide-border-soft">
+        <div className="flex shrink-0 flex-col divide-y divide-border-soft">
           {activeTasks.length === 0 ? (
             <p className="py-5 text-center font-sans text-[13px] font-medium text-ink-muted">
               Semua tugas proyek ini sudah beres!
@@ -248,7 +248,7 @@ export function ProjectTasksColumn({
         </div>
 
         {doneTasks.length > 0 && (
-          <div className="border-t-2 border-border-soft pt-3">
+          <div className="shrink-0 border-t-2 border-border-soft pt-3">
             <button
               type="button"
               onClick={() => setShowDone((prev) => !prev)}

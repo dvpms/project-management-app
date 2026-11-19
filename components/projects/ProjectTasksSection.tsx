@@ -178,7 +178,7 @@ export function ProjectTasksSection({
           )}
         </Card>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex max-h-[520px] flex-col gap-3 overflow-y-auto overscroll-contain pt-0.5 pr-1.5 pb-1.5">
           {visibleTopLevelTasks.map((t) => {
             const statusMeta = TASK_STATUS_META[t.status];
             const priorityMeta = PRIORITY_META[t.priority];
@@ -206,7 +206,7 @@ export function ProjectTasksSection({
                 key={t.id}
                 interactive
                 onClick={() => onSelectTask(t)}
-                className="flex flex-col gap-3 px-4 py-3.5"
+                className="flex shrink-0 flex-col gap-3 px-4 py-3.5"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex min-w-0 flex-1 items-start gap-2.5">
@@ -404,7 +404,7 @@ export function ProjectTasksSection({
                 key={sub.id}
                 interactive
                 onClick={() => onSelectTask(sub)}
-                className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5"
+                className="flex shrink-0 flex-wrap items-center justify-between gap-3 px-4 py-3.5"
               >
                 <div className="flex min-w-0 flex-1 items-start gap-3">
                   <Icon
