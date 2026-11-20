@@ -6,7 +6,10 @@ import { useState, type FormEvent } from "react";
 import { Badge, Card, Icon, IconButton, Input } from "@/components/ui";
 import { CHEVRON_TRANSITION, COLLAPSE_TRANSITION } from "@/lib/motion";
 import { PROJECT_COLOR_DOT, TASK_STATUS_META } from "@/lib/project-constants";
-import { sortProjectActiveTasks } from "@/lib/task-sorting";
+import {
+  sortProjectActiveTasks,
+  sortTasksBySchedule,
+} from "@/lib/task-sorting";
 import type {
   DashboardActiveProject,
   DashboardTaskItem,
@@ -175,7 +178,9 @@ export function ProjectTasksColumn({
   const activeTasks = sortProjectActiveTasks(
     topLevelTasks.filter((t) => t.status !== "DONE")
   );
-  const doneTasks = topLevelTasks.filter((t) => t.status === "DONE");
+  const doneTasks = sortTasksBySchedule(
+    topLevelTasks.filter((t) => t.status === "DONE")
+  );
 
   const toggleExpand = (taskId: string) => {
     setExpandedIds((prev) => {

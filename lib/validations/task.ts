@@ -31,7 +31,7 @@ export const updateTaskSchema = createTaskSchema.extend({
 export const moveTaskSchema = z.object({
   taskId: z.string().min(1),
   targetStatus: z.enum(TASK_STATUS_VALUES),
-  orderedTaskIds: z.array(z.string().min(1)),
+  orderedTaskIds: z.array(z.string().min(1)).optional(),
 });
 
 export const archiveDoneTasksSchema = z.object({

@@ -83,7 +83,6 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
   const handleCommitMove = (
     taskId: string,
     targetStatus: TaskStatus,
-    orderedTaskIds: string[],
     nextKanbanSnapshot: DashboardTaskItem[]
   ) => {
     const snapshotMap = new Map(nextKanbanSnapshot.map((t) => [t.id, t]));
@@ -96,7 +95,6 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
       const res = await moveTaskAction({
         taskId,
         targetStatus,
-        orderedTaskIds,
       });
 
       if (!res.ok) {
@@ -123,6 +121,7 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
       status: "BACKLOG",
       priority: "MEDIUM",
       dueDate: null,
+      createdAt: new Date().toISOString(),
       order: optimisticTasks.filter((t) => t.status === "BACKLOG").length,
       isArchived: false,
     };

@@ -53,6 +53,7 @@ export interface EditableTaskItem {
   status: TaskStatus;
   priority: TaskPriority;
   dueDate: string | null;
+  createdAt?: string | null;
   order?: number;
   isArchived: boolean;
 }
@@ -236,6 +237,7 @@ function TaskDetailModalInner({
           status: "BACKLOG",
           priority: "MEDIUM",
           dueDate: null,
+          createdAt: new Date().toISOString(),
           order: mergedSubtasks.length,
           isArchived: false,
         },
