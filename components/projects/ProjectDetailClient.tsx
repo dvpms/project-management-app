@@ -93,16 +93,16 @@ export function ProjectDetailClient({
             className="grid grid-cols-1 gap-6 lg:grid-cols-12"
           >
             <div className="flex flex-col gap-6 lg:col-span-8">
+              <ProjectNotesCard
+                projectId={project.id}
+                initialNotes={project.notes}
+              />
+
               <ProjectTasksSection
                 tasks={project.tasks}
                 onSelectTask={openTaskModal}
                 onAddTask={() => openNewTask()}
                 onAddSubtask={(parentId) => openNewTask(undefined, parentId)}
-              />
-
-              <ProjectNotesCard
-                projectId={project.id}
-                initialNotes={project.notes}
               />
             </div>
 

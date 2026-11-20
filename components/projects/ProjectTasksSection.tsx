@@ -17,7 +17,10 @@ import {
 import { CHEVRON_TRANSITION, COLLAPSE_TRANSITION } from "@/lib/motion";
 import { PRIORITY_META, TASK_STATUS_META } from "@/lib/project-constants";
 import { stripMarkdownToPlainText } from "@/lib/task-helpers";
-import { sortProjectActiveTasks } from "@/lib/task-sorting";
+import {
+  sortProjectActiveTasks,
+  sortTasksBySchedule,
+} from "@/lib/task-sorting";
 import type { ProjectDetailData } from "@/services/project-service";
 import { cn } from "@/lib/utils";
 
@@ -73,24 +76,28 @@ export function ProjectTasksSection({
 
   const topLevelTasks = tasks.filter((t) => !t.parentId);
 
-  const visibleTopLevelTasks = topLevelTasks.filter((t) => {
-    if (filter === "ARCHIVED") return t.isArchived;
-    if (t.isArchived) return false;
-    if (filter === "ALL") return true;
-    const children = subtasksByParent.get(t.id) ?? [];
-    return (
-      t.status === filter ||
-      children.some((c) => !c.isArchived && c.status === filter)
-    );
-  });
+  const visibleTopLevelTasks = sortProjectActiveTasks(
+    topLevelTasks.filter((t) => {
+      if (filter === "ARCHIVED") return t.isArchived;
+      if (t.isArchived) return false;
+      if (filter === "ALL") return true;
+      const children = subtasksByParent.get(t.id) ?? [];
+      return (
+        t.status === filter ||
+        children.some((c) => !c.isArchived && c.status === filter)
+      );
+    })
+  );
 
   const archivedOrphanSubtasks =
     filter === "ARCHIVED"
-      ? tasks.filter(
-          (t) =>
-            t.parentId !== null &&
-            t.isArchived &&
-            !(tasksById.get(t.parentId)?.isArchived ?? false)
+      ? sortTasksBySchedule(
+          tasks.filter(
+            (t) =>
+              t.parentId !== null &&
+              t.isArchived &&
+              !(tasksById.get(t.parentId)?.isArchived ?? false)
+          )
         )
       : [];
 

@@ -1,7 +1,6 @@
 "use client";
 
-import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { useDraggable } from "@dnd-kit/core";
 import { Badge, Card, CardContent, Icon } from "@/components/ui";
 import { PRIORITY_META, type ProjectColorTone } from "@/lib/project-constants";
 import { stripMarkdownToPlainText } from "@/lib/task-helpers";
@@ -100,7 +99,7 @@ export function KanbanTaskCardContent({
   );
 }
 
-export function SortableKanbanTaskCard({
+export function DraggableKanbanTaskCard({
   task,
   project,
   onSelect,
@@ -109,27 +108,14 @@ export function SortableKanbanTaskCard({
   project?: CardProjectInfo;
   onSelect: () => void;
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: task.id,
     data: { type: "task", status: task.status },
   });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
   return (
     <div
       ref={setNodeRef}
-      style={style}
       {...attributes}
       {...listeners}
       onClick={onSelect}

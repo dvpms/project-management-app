@@ -244,48 +244,24 @@ export async function moveTask(
   return prisma.$transaction(async (tx) => {
     const existing = await tx.task.findFirst({
       where: { id: input.taskId, userId },
-      select: { id: true, projectId: true },
+      select: { id: true, projectId: true, parentId: true },
     });
     if (!existing) {
       throw new Error("Tugas tidak ditemukan.");
     }
 
-    const uniqueIds = Array.from(new Set(input.orderedTaskIds));
-    if (!uniqueIds.includes(input.taskId)) {
-      uniqueIds.push(input.taskId);
-    }
-
-    for (let index = 0; index < uniqueIds.length; index += 1) {
-      await tx.task.updateMany({
-        where: { id: uniqueIds[index], userId },
-        data: {
-          status: input.targetStatus,
-          order: index,
-        },
-      });
-    }
-
-    const affected = await tx.task.findMany({
-      where: { id: { in: uniqueIds }, userId },
-      select: { parentId: true, projectId: true },
+    await tx.task.update({
+      where: { id: existing.id },
+      data: {
+        status: input.targetStatus,
+      },
     });
 
-    const parentIds = Array.from(
-      new Set(
-        affected
-          .map((item) => item.parentId)
-          .filter((id): id is string => Boolean(id))
-      )
-    );
-    for (const parentId of parentIds) {
-      await syncParentTaskState(tx, userId, parentId);
+    if (existing.parentId) {
+      await syncParentTaskState(tx, userId, existing.parentId);
     }
 
-    const projectIds = new Set<string>([existing.projectId]);
-    for (const item of affected) {
-      projectIds.add(item.projectId);
-    }
-    return Array.from(projectIds);
+    return [existing.projectId];
   });
 }
 

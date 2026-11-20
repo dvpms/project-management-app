@@ -1,10 +1,9 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { TaskStatus } from "@/app/generated/prisma/enums";
 import {
-  SortableKanbanTaskCard,
+  DraggableKanbanTaskCard,
   type CardProjectInfo,
 } from "@/components/kanban/KanbanTaskCard";
 import { Button, Icon, IconButton, SurfaceColumn } from "@/components/ui";
@@ -89,27 +88,22 @@ export function KanbanColumn({
           scrollAreaClassName
         )}
       >
-        <SortableContext
-          items={tasks.map((t) => t.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {tasks.length === 0 ? (
-            <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-2xl border-2 border-dashed border-border-soft bg-surface p-6 text-center">
-              <p className="font-sans text-[12px] font-semibold text-ink-muted">
-                Seret kartu ke sini
-              </p>
-            </div>
-          ) : (
-            tasks.map((task) => (
-              <SortableKanbanTaskCard
-                key={task.id}
-                task={task}
-                project={projectsById.get(task.projectId)}
-                onSelect={() => onSelectTask(task)}
-              />
-            ))
-          )}
-        </SortableContext>
+        {tasks.length === 0 ? (
+          <div className="flex min-h-[220px] flex-1 items-center justify-center rounded-2xl border-2 border-dashed border-border-soft bg-surface p-6 text-center">
+            <p className="font-sans text-[12px] font-semibold text-ink-muted">
+              Seret kartu ke sini
+            </p>
+          </div>
+        ) : (
+          tasks.map((task) => (
+            <DraggableKanbanTaskCard
+              key={task.id}
+              task={task}
+              project={projectsById.get(task.projectId)}
+              onSelect={() => onSelectTask(task)}
+            />
+          ))
+        )}
       </div>
     </SurfaceColumn>
   );

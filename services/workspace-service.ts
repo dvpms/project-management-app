@@ -23,6 +23,7 @@ export interface DashboardTaskItem {
   status: TaskStatus;
   priority: TaskPriority;
   dueDate: string | null;
+  createdAt: string;
   order: number;
   isArchived: boolean;
 }
@@ -57,7 +58,7 @@ export async function getDashboardWorkspaceData(
           { parentId: { not: null }, parent: { isArchived: false } },
         ],
       },
-      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+      orderBy: [{ dueDate: "asc" }, { createdAt: "asc" }],
       include: {
         milestone: { select: { title: true } },
         parent: { select: { title: true } },
@@ -89,6 +90,7 @@ export async function getDashboardWorkspaceData(
       status: t.status,
       priority: t.priority,
       dueDate: t.dueDate ? t.dueDate.toISOString().slice(0, 10) : null,
+      createdAt: t.createdAt.toISOString(),
       order: t.order,
       isArchived: t.isArchived,
     })),
