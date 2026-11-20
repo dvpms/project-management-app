@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useId, useState, useTransition, type FormEvent } from "react";
 import {
   archiveSingleTaskAction,
   createTaskAction,
@@ -16,12 +17,16 @@ import {
   IconButton,
   Input,
   MarkdownEditor,
-  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalShell,
   Select,
   useConfirm,
   useToast,
 } from "@/components/ui";
 import { KANBAN_COLUMNS, TASK_STATUS_META } from "@/lib/project-constants";
+import { COLLAPSE_TRANSITION, VIEW_SWITCH_TRANSITION } from "@/lib/motion";
 import { deriveParentStatus } from "@/lib/task-helpers";
 import { sortProjectActiveTasks } from "@/lib/task-sorting";
 import { cn } from "@/lib/utils";
@@ -76,10 +81,15 @@ function TaskDetailModalInner({
   defaultStatus = "BACKLOG",
   projects,
   milestones,
+  titleId,
+  descId,
   onSelectTask,
   onClose,
   onSuccess,
-}: Omit<TaskDetailModalProps, "open">) {
+}: Omit<TaskDetailModalProps, "open"> & {
+  titleId: string;
+  descId: string;
+}) {
   const { showToast } = useToast();
   const confirm = useConfirm();
   const [isPending, startTransition] = useTransition();
@@ -325,76 +335,38 @@ function TaskDetailModalInner({
       ? mergedSubtasks.every((s) => s.status === "DONE")
       : status === "DONE");
 
+  const modalTitle = task
+    ? isSubtaskMode
+      ? "Detail & Edit Sub-tugas"
+      : "Detail & Edit Tugas"
+    : isSubtaskMode
+      ? "Buat Sub-tugas Baru"
+      : "Buat Tugas Baru";
+
+  const modalDescription = isSubtaskMode
+    ? "Sub-tugas tampil sebagai card mandiri di Space Kanban dan mengikuti proyek induknya."
+    : task
+      ? "Perubahan langsung tersinkron antara Space Kanban dan detail proyek."
+      : "Tugas baru otomatis masuk ke Space Kanban dan daftar proyek.";
+
   return (
-    <Modal
-      open
-      onClose={onClose}
-      title={
-        task
-          ? isSubtaskMode
-            ? "Detail & Edit Sub-tugas"
-            : "Detail & Edit Tugas"
-          : isSubtaskMode
-            ? "Buat Sub-tugas Baru"
-            : "Buat Tugas Baru"
-      }
-      description={
-        isSubtaskMode
-          ? "Sub-tugas tampil sebagai card mandiri di Space Kanban dan mengikuti proyek induknya."
-          : task
-            ? "Perubahan langsung tersinkron antara Space Kanban dan detail proyek."
-            : "Tugas baru otomatis masuk ke Space Kanban dan daftar proyek."
-      }
-      size="lg"
-      headerTone={task ? "blue" : "white"}
-      footer={
-        <div className="flex w-full flex-wrap items-center justify-between gap-2">
-          <div className="flex gap-2">
-            {task && (
-              <Button
-                variant="danger"
-                size="sm"
-                leftIcon={<Icon name="delete" size="sm" />}
-                onClick={handleDelete}
-                disabled={isPending}
-              >
-                Hapus
-              </Button>
-            )}
-            {canArchiveCurrent && (
-              <Button
-                variant="outline"
-                size="sm"
-                leftIcon={<Icon name="inventory_2" size="sm" />}
-                onClick={handleArchive}
-                disabled={isPending}
-              >
-                Arsipkan
-              </Button>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={onClose} disabled={isPending}>
-              Batal
-            </Button>
-            <Button
-              variant="primary"
-              leftIcon={<Icon name="save" size="sm" />}
-              onClick={handleSubmit}
-              disabled={isPending}
-            >
-              {isPending
-                ? "Menyimpan..."
-                : task
-                  ? "Simpan Perubahan"
-                  : isSubtaskMode
-                    ? "Tambah Sub-tugas"
-                    : "Tambah Tugas"}
-            </Button>
-          </div>
-        </div>
-      }
+    <motion.div
+      initial={{ opacity: 0, x: 10 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -10 }}
+      transition={VIEW_SWITCH_TRANSITION}
+      className="flex min-h-0 flex-1 flex-col"
     >
+      <ModalHeader
+        title={modalTitle}
+        description={modalDescription}
+        headerTone={task ? "blue" : "white"}
+        titleId={titleId}
+        descId={descId}
+        onClose={onClose}
+      />
+
+      <ModalBody>
       <div className="flex flex-col gap-4">
         {isSubtaskMode && (
           <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-2 border-border-soft bg-surface-hover px-3.5 py-2.5">
@@ -590,61 +562,140 @@ function TaskDetailModalInner({
               </p>
             ) : (
               <div className="flex max-h-[220px] flex-col gap-2 overflow-y-auto pr-1">
-                {mergedSubtasks.map((sub) => {
-                  const subStatusMeta = TASK_STATUS_META[sub.status];
-                  return (
-                    <div
-                      key={sub.id}
-                      className="flex items-center justify-between gap-2 rounded-2xl border-2 border-border-soft bg-surface-hover px-3 py-2"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => onSelectTask?.(sub)}
-                        className="group flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer"
+                <AnimatePresence initial={false}>
+                  {mergedSubtasks.map((sub) => {
+                    const subStatusMeta = TASK_STATUS_META[sub.status];
+                    return (
+                      <motion.div
+                        key={sub.id}
+                        layout="position"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={COLLAPSE_TRANSITION}
+                        className="overflow-hidden"
                       >
-                        <span
-                          className={cn(
-                            "min-w-0 flex-1 truncate font-display text-[13px] font-bold group-hover:text-primary",
-                            sub.status === "DONE"
-                              ? "text-ink-muted line-through"
-                              : "text-ink"
-                          )}
-                        >
-                          {sub.title}
-                        </span>
-                      </button>
+                        <div className="flex items-center justify-between gap-2 rounded-2xl border-2 border-border-soft bg-surface-hover px-3 py-2">
+                          <button
+                            type="button"
+                            onClick={() => onSelectTask?.(sub)}
+                            className="group flex min-w-0 flex-1 items-center gap-2 text-left cursor-pointer"
+                          >
+                            <span
+                              className={cn(
+                                "min-w-0 flex-1 truncate font-display text-[13px] font-bold group-hover:text-primary",
+                                sub.status === "DONE"
+                                  ? "text-ink-muted line-through"
+                                  : "text-ink"
+                              )}
+                            >
+                              {sub.title}
+                            </span>
+                          </button>
 
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        {sub.isArchived && (
-                          <Badge variant="neutral">Arsip</Badge>
-                        )}
-                        <Badge variant={subStatusMeta.badgeVariant}>
-                          {subStatusMeta.label}
-                        </Badge>
-                        <IconButton
-                          size="sm"
-                          variant="danger"
-                          label={`Hapus sub-tugas ${sub.title}`}
-                          icon={<Icon name="delete" size="sm" />}
-                          onClick={() => handleDeleteSubtaskInline(sub)}
-                          disabled={isSubtaskPending}
-                          className="h-7 w-7"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                          <div className="flex shrink-0 items-center gap-1.5">
+                            {sub.isArchived && (
+                              <Badge variant="neutral">Arsip</Badge>
+                            )}
+                            <Badge variant={subStatusMeta.badgeVariant}>
+                              {subStatusMeta.label}
+                            </Badge>
+                            <IconButton
+                              size="sm"
+                              variant="danger"
+                              label={`Hapus sub-tugas ${sub.title}`}
+                              icon={<Icon name="delete" size="sm" />}
+                              onClick={() => handleDeleteSubtaskInline(sub)}
+                              disabled={isSubtaskPending}
+                              className="h-7 w-7"
+                            />
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
               </div>
             )}
           </div>
         )}
       </div>
-    </Modal>
+      </ModalBody>
+
+      <ModalFooter>
+        <div className="flex w-full flex-wrap items-center justify-between gap-2">
+          <div className="flex gap-2">
+            {task && (
+              <Button
+                variant="danger"
+                size="sm"
+                leftIcon={<Icon name="delete" size="sm" />}
+                onClick={handleDelete}
+                disabled={isPending}
+              >
+                Hapus
+              </Button>
+            )}
+            {canArchiveCurrent && (
+              <Button
+                variant="outline"
+                size="sm"
+                leftIcon={<Icon name="inventory_2" size="sm" />}
+                onClick={handleArchive}
+                disabled={isPending}
+              >
+                Arsipkan
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose} disabled={isPending}>
+              Batal
+            </Button>
+            <Button
+              variant="primary"
+              leftIcon={<Icon name="save" size="sm" />}
+              onClick={handleSubmit}
+              disabled={isPending}
+            >
+              {isPending
+                ? "Menyimpan..."
+                : task
+                  ? "Simpan Perubahan"
+                  : isSubtaskMode
+                    ? "Tambah Sub-tugas"
+                    : "Tambah Tugas"}
+            </Button>
+          </div>
+        </div>
+      </ModalFooter>
+    </motion.div>
   );
 }
 
 export function TaskDetailModal(props: TaskDetailModalProps) {
-  if (!props.open) return null;
+  const titleId = useId();
+  const descId = useId();
   const key = `${props.task?.id ?? "new"}-${props.defaultParentId ?? ""}-${props.defaultStatus ?? "BACKLOG"}-${props.defaultProjectId ?? ""}-${props.defaultMilestoneId ?? ""}`;
-  return <TaskDetailModalInner key={key} {...props} />;
+
+  return (
+    <ModalShell
+      open={props.open}
+      onClose={props.onClose}
+      size="lg"
+      labelledBy={titleId}
+      describedBy={descId}
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {props.open && (
+          <TaskDetailModalInner
+            key={key}
+            titleId={titleId}
+            descId={descId}
+            {...props}
+          />
+        )}
+      </AnimatePresence>
+    </ModalShell>
+  );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Nunito, Plus_Jakarta_Sans, Space_Mono } from "next/font/google";
+import { MotionProvider } from "@/components/layout/MotionProvider";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -40,7 +41,7 @@ export default function RootLayout({
       className={`${nunito.variable} ${plusJakartaSans.variable} ${spaceMono.variable}`}
     >
       <body className="min-h-screen bg-surface font-sans text-ink antialiased">
-        {children}
+        <MotionProvider>{children}</MotionProvider>
       </body>
     </html>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { restoreTaskAction } from "@/actions/task-actions";
@@ -13,6 +14,7 @@ import {
   useConfirm,
   useToast,
 } from "@/components/ui";
+import { CHEVRON_TRANSITION, COLLAPSE_TRANSITION } from "@/lib/motion";
 import { PRIORITY_META, TASK_STATUS_META } from "@/lib/project-constants";
 import { stripMarkdownToPlainText } from "@/lib/task-helpers";
 import { sortProjectActiveTasks } from "@/lib/task-sorting";
@@ -178,7 +180,7 @@ export function ProjectTasksSection({
           )}
         </Card>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex max-h-[520px] flex-col gap-3 overflow-y-auto overscroll-contain pt-0.5 pr-1.5 pb-1.5">
           {visibleTopLevelTasks.map((t) => {
             const statusMeta = TASK_STATUS_META[t.status];
             const priorityMeta = PRIORITY_META[t.priority];
@@ -206,7 +208,7 @@ export function ProjectTasksSection({
                 key={t.id}
                 interactive
                 onClick={() => onSelectTask(t)}
-                className="flex flex-col gap-3 px-4 py-3.5"
+                className="flex shrink-0 flex-col gap-3 px-4 py-3.5"
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex min-w-0 flex-1 items-start gap-2.5">
@@ -223,10 +225,13 @@ export function ProjectTasksSection({
                         }
                         className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-border-soft bg-surface-hover text-ink-muted hover:text-ink cursor-pointer"
                       >
-                        <Icon
-                          name={isExpanded ? "expand_more" : "chevron_right"}
-                          size="sm"
-                        />
+                        <motion.span
+                          animate={{ rotate: isExpanded ? 90 : 0 }}
+                          transition={CHEVRON_TRANSITION}
+                          className="inline-flex items-center justify-center"
+                        >
+                          <Icon name="chevron_right" size="sm" />
+                        </motion.span>
                       </button>
                     )}
 
@@ -303,94 +308,104 @@ export function ProjectTasksSection({
                   </div>
                 </div>
 
-                {hasChildren && isExpanded && (
-                  <div
-                    onClick={(e) => e.stopPropagation()}
-                    className="ml-3 flex flex-col gap-2 border-l-2 border-border-soft pl-3.5 pt-1"
-                  >
-                    {shownChildren.map((sub) => {
-                      const subStatusMeta = TASK_STATUS_META[sub.status];
-                      const subIcon = getStatusIcon(sub.status);
-                      const subDesc = stripMarkdownToPlainText(sub.description);
+                <AnimatePresence initial={false}>
+                  {hasChildren && isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={COLLAPSE_TRANSITION}
+                      className="overflow-hidden"
+                    >
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="ml-3 flex flex-col gap-2 border-l-2 border-border-soft pl-3.5 pt-1"
+                      >
+                        {shownChildren.map((sub) => {
+                          const subStatusMeta = TASK_STATUS_META[sub.status];
+                          const subIcon = getStatusIcon(sub.status);
+                          const subDesc = stripMarkdownToPlainText(sub.description);
 
-                      return (
-                        <div
-                          key={sub.id}
-                          onClick={() => onSelectTask(sub)}
-                          role="button"
-                          tabIndex={0}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              e.preventDefault();
-                              onSelectTask(sub);
-                            }
-                          }}
-                          className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-2 border-border-soft bg-surface-hover px-3.5 py-2.5 transition-colors hover:border-primary cursor-pointer"
-                        >
-                          <div className="flex min-w-0 flex-1 items-start gap-2.5">
-                            <Icon
-                              name={subIcon.name}
-                              size="sm"
-                              filled={sub.status === "DONE"}
-                              className={cn("mt-0.5 shrink-0", subIcon.color)}
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p
-                                className={cn(
-                                  "font-display text-[13px] font-bold text-ink",
-                                  sub.status === "DONE" &&
-                                    "text-ink-muted line-through"
+                          return (
+                            <div
+                              key={sub.id}
+                              onClick={() => onSelectTask(sub)}
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  onSelectTask(sub);
+                                }
+                              }}
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border-2 border-border-soft bg-surface-hover px-3.5 py-2.5 transition-colors hover:border-primary cursor-pointer"
+                            >
+                              <div className="flex min-w-0 flex-1 items-start gap-2.5">
+                                <Icon
+                                  name={subIcon.name}
+                                  size="sm"
+                                  filled={sub.status === "DONE"}
+                                  className={cn("mt-0.5 shrink-0", subIcon.color)}
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <p
+                                    className={cn(
+                                      "font-display text-[13px] font-bold text-ink",
+                                      sub.status === "DONE" &&
+                                        "text-ink-muted line-through"
+                                    )}
+                                  >
+                                    {sub.title}
+                                  </p>
+                                  {subDesc && (
+                                    <p className="mt-0.5 line-clamp-1 font-sans text-[12px] font-medium text-ink-muted">
+                                      {subDesc}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div
+                                className="flex items-center gap-1.5"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {sub.isArchived && (
+                                  <Badge variant="neutral">Arsip</Badge>
                                 )}
-                              >
-                                {sub.title}
-                              </p>
-                              {subDesc && (
-                                <p className="mt-0.5 line-clamp-1 font-sans text-[12px] font-medium text-ink-muted">
-                                  {subDesc}
-                                </p>
-                              )}
+                                <Badge variant={subStatusMeta.badgeVariant}>
+                                  {subStatusMeta.label}
+                                </Badge>
+                                {sub.isArchived && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={isPending}
+                                    onClick={() => handleRestore(sub)}
+                                  >
+                                    Pulihkan
+                                  </Button>
+                                )}
+                              </div>
                             </div>
-                          </div>
+                          );
+                        })}
 
-                          <div
-                            className="flex items-center gap-1.5"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {sub.isArchived && (
-                              <Badge variant="neutral">Arsip</Badge>
-                            )}
-                            <Badge variant={subStatusMeta.badgeVariant}>
-                              {subStatusMeta.label}
-                            </Badge>
-                            {sub.isArchived && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={isPending}
-                                onClick={() => handleRestore(sub)}
-                              >
-                                Pulihkan
-                              </Button>
-                            )}
+                        {filter !== "ARCHIVED" && onAddSubtask && (
+                          <div className="pt-0.5">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              leftIcon={<Icon name="add" size="sm" />}
+                              onClick={() => onAddSubtask(t.id)}
+                            >
+                              Sub-tugas
+                            </Button>
                           </div>
-                        </div>
-                      );
-                    })}
-
-                    {filter !== "ARCHIVED" && onAddSubtask && (
-                      <div className="pt-0.5">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          leftIcon={<Icon name="add" size="sm" />}
-                          onClick={() => onAddSubtask(t.id)}
-                        >
-                          Sub-tugas
-                        </Button>
+                        )}
                       </div>
-                    )}
-                  </div>
-                )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Card>
             );
           })}
@@ -404,7 +419,7 @@ export function ProjectTasksSection({
                 key={sub.id}
                 interactive
                 onClick={() => onSelectTask(sub)}
-                className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5"
+                className="flex shrink-0 flex-wrap items-center justify-between gap-3 px-4 py-3.5"
               >
                 <div className="flex min-w-0 flex-1 items-start gap-3">
                   <Icon

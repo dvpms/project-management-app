@@ -43,9 +43,15 @@ export {
 export {
   ConfirmModalProvider,
   Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
+  ModalShell,
   useConfirm,
   type ConfirmOptions,
+  type ModalHeaderTone,
   type ModalProps,
+  type ModalSize,
 } from "./modal";
 export {
   ThemeProvider,

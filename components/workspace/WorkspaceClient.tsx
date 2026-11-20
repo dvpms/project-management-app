@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useOptimistic, useState, useTransition } from "react";
@@ -20,6 +21,7 @@ import {
   WorkspaceToolbar,
   type WorkspaceLayoutMode,
 } from "@/components/workspace/WorkspaceToolbar";
+import { VIEW_SWITCH_TRANSITION } from "@/lib/motion";
 import { recomputeOptimisticParents } from "@/lib/task-helpers";
 import type {
   DashboardTaskItem,
@@ -206,63 +208,79 @@ export function WorkspaceClient({ data }: { data: DashboardWorkspaceData }) {
         onNewTask={() => openNewTaskModal("BACKLOG")}
       />
 
-      {layoutMode !== "projects" && (
-        <section className="flex flex-col gap-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h1 className="font-display text-[24px] font-extrabold leading-8 tracking-[-0.02em] text-ink">
-                Space Kanban
-              </h1>
-              <Badge variant="primary" mono>
-                {kanbanTasks.length} TUGAS
-              </Badge>
-            </div>
-            <span className="hidden font-sans text-[13px] font-medium text-ink-muted sm:inline">
-              Seret kartu antar kolom atau klik untuk detail
-            </span>
-          </div>
-
-          <SpaceKanbanBoard
-            tasks={kanbanTasks}
-            projects={data.activeProjects}
-            layoutMode={layoutMode}
-            onCommitMove={handleCommitMove}
-            onSelectTask={openTaskModal}
-            onArchiveAllDone={handleArchiveAllDone}
-            onCreateTaskInStatus={(status) => openNewTaskModal(status)}
-          />
-        </section>
-      )}
-
-      {layoutMode !== "kanban" && (
-        <section className="flex flex-col gap-5 border-t-2 border-border-soft pt-8">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <h2 className="font-display text-[24px] font-extrabold leading-8 tracking-[-0.02em] text-ink">
-                Proyek Aktif
-              </h2>
-              <Badge variant="neutral" mono>
-                {data.activeProjects.length} PROYEK
-              </Badge>
+      <AnimatePresence initial={false}>
+        {layoutMode !== "projects" && (
+          <motion.section
+            key="workspace-kanban"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={VIEW_SWITCH_TRANSITION}
+            className="flex flex-col gap-5"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h1 className="font-display text-[24px] font-extrabold leading-8 tracking-[-0.02em] text-ink">
+                  Space Kanban
+                </h1>
+                <Badge variant="primary" mono>
+                  {kanbanTasks.length} TUGAS
+                </Badge>
+              </div>
+              <span className="hidden font-sans text-[13px] font-medium text-ink-muted sm:inline">
+                Seret kartu antar kolom atau klik untuk detail
+              </span>
             </div>
 
-            <Link
-              href="/projects"
-              className="inline-flex h-9 items-center gap-1.5 rounded-xl border-2 border-border-soft border-b-[5px] border-b-border-lip bg-surface-container px-3.5 font-display text-[13px] font-bold text-ink transition-all duration-100 hover:bg-surface-hover active:translate-y-[3px] active:border-b-2"
-            >
-              Kelola Semua Proyek
-              <Icon name="arrow_forward" size="sm" />
-            </Link>
-          </div>
+            <SpaceKanbanBoard
+              tasks={kanbanTasks}
+              projects={data.activeProjects}
+              layoutMode={layoutMode}
+              onCommitMove={handleCommitMove}
+              onSelectTask={openTaskModal}
+              onArchiveAllDone={handleArchiveAllDone}
+              onCreateTaskInStatus={(status) => openNewTaskModal(status)}
+            />
+          </motion.section>
+        )}
 
-          <ActiveProjectsBoard
-            projects={data.activeProjects}
-            tasks={optimisticTasks}
-            onQuickAddTask={handleQuickAddTask}
-            onSelectTask={openTaskModal}
-          />
-        </section>
-      )}
+        {layoutMode !== "kanban" && (
+          <motion.section
+            key="workspace-projects"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={VIEW_SWITCH_TRANSITION}
+            className="flex flex-col gap-5 border-t-2 border-border-soft pt-8"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <h2 className="font-display text-[24px] font-extrabold leading-8 tracking-[-0.02em] text-ink">
+                  Proyek Aktif
+                </h2>
+                <Badge variant="neutral" mono>
+                  {data.activeProjects.length} PROYEK
+                </Badge>
+              </div>
+
+              <Link
+                href="/projects"
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border-2 border-border-soft border-b-[5px] border-b-border-lip bg-surface-container px-3.5 font-display text-[13px] font-bold text-ink transition-all duration-100 hover:bg-surface-hover active:translate-y-[3px] active:border-b-2"
+              >
+                Kelola Semua Proyek
+                <Icon name="arrow_forward" size="sm" />
+              </Link>
+            </div>
+
+            <ActiveProjectsBoard
+              projects={data.activeProjects}
+              tasks={optimisticTasks}
+              onQuickAddTask={handleQuickAddTask}
+              onSelectTask={openTaskModal}
+            />
+          </motion.section>
+        )}
+      </AnimatePresence>
 
       <TaskDetailModal
         open={modalOpen}

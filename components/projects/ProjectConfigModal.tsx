@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence } from "framer-motion";
 import { useState, useTransition } from "react";
 import { updateProjectConfigAction } from "@/actions/project-actions";
 import type { ProjectStatus } from "@/app/generated/prisma/enums";
@@ -246,6 +247,11 @@ function ProjectConfigModalInner({
 }
 
 export function ProjectConfigModal(props: ProjectConfigModalProps) {
-  if (!props.open) return null;
-  return <ProjectConfigModalInner key={props.project.id} {...props} />;
+  return (
+    <AnimatePresence>
+      {props.open && (
+        <ProjectConfigModalInner key={props.project.id} {...props} />
+      )}
+    </AnimatePresence>
+  );
 }

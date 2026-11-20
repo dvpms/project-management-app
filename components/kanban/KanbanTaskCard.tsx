@@ -38,7 +38,7 @@ export function KanbanTaskCardContent({
       interactive={!isOverlay}
       className={cn(
         "p-4",
-        isOverlay && "rotate-1 border-primary border-b-primary-lip"
+        isOverlay && "border-primary border-b-primary-lip"
       )}
     >
       <CardContent className="flex flex-col gap-2.5 p-0">
@@ -133,7 +133,10 @@ export function SortableKanbanTaskCard({
       {...attributes}
       {...listeners}
       onClick={onSelect}
-      className={cn("touch-none outline-none", isDragging && "opacity-35")}
+      className={cn(
+        "shrink-0 touch-none outline-none",
+        isDragging && "opacity-35"
+      )}
     >
       <KanbanTaskCardContent task={task} project={project} />
     </div>

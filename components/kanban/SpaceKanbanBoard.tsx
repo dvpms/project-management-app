@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { motion } from "framer-motion";
+import { useId, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -21,6 +22,7 @@ import {
   type CardProjectInfo,
 } from "@/components/kanban/KanbanTaskCard";
 import type { WorkspaceLayoutMode } from "@/components/workspace/WorkspaceToolbar";
+import { SPRING_PICKUP } from "@/lib/motion";
 import { KANBAN_COLUMNS } from "@/lib/project-constants";
 import type { DashboardTaskItem } from "@/services/workspace-service";
 
@@ -48,6 +50,7 @@ export function SpaceKanbanBoard({
   onArchiveAllDone,
   onCreateTaskInStatus,
 }: SpaceKanbanBoardProps) {
+  const dndContextId = useId();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [dragTasks, setDragTasks] = useState<DashboardTaskItem[] | null>(null);
 
@@ -148,6 +151,7 @@ export function SpaceKanbanBoard({
 
   return (
     <DndContext
+      id={dndContextId}
       sensors={sensors}
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
@@ -174,11 +178,17 @@ export function SpaceKanbanBoard({
 
       <DragOverlay>
         {activeTask ? (
-          <KanbanTaskCardContent
-            task={activeTask}
-            project={projectsById.get(activeTask.projectId)}
-            isOverlay
-          />
+          <motion.div
+            initial={{ scale: 1, rotate: 0 }}
+            animate={{ scale: 1.03, rotate: 1.5 }}
+            transition={SPRING_PICKUP}
+          >
+            <KanbanTaskCardContent
+              task={activeTask}
+              project={projectsById.get(activeTask.projectId)}
+              isOverlay
+            />
+          </motion.div>
         ) : null}
       </DragOverlay>
     </DndContext>

@@ -1,19 +1,33 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { AccountSettingsModal } from "@/components/layout/AccountSettingsModal";
 import { Button, Icon } from "@/components/ui";
 import type { WorkspaceUserProfile } from "@/lib/auth-guard";
+import { SPRING_PILL } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export function Navbar({ user }: { user: WorkspaceUserProfile }) {
   const pathname = usePathname();
   const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const isDashboard = pathname === "/";
-  const isProjects = pathname.startsWith("/projects");
+  const navItems = [
+    {
+      href: "/",
+      label: "Dashboard",
+      icon: "dashboard",
+      active: pathname === "/",
+    },
+    {
+      href: "/projects",
+      label: "Daftar Proyek",
+      icon: "folder",
+      active: pathname.startsWith("/projects"),
+    },
+  ];
 
   return (
     <>
@@ -37,33 +51,36 @@ export function Navbar({ user }: { user: WorkspaceUserProfile }) {
 
           <nav
             aria-label="Navigasi utama"
-            className="flex flex-wrap items-center gap-2"
+            className="flex flex-wrap items-center gap-2.5"
           >
-            <Link
-              href="/"
-              className={cn(
-                "inline-flex h-9 items-center gap-1.5 rounded-xl border-2 border-b-[5px] px-3.5 font-display text-[13px] font-bold transition-all duration-100 active:translate-y-[3px] active:border-b-2",
-                isDashboard
-                  ? "border-primary-lip bg-primary text-on-primary hover:bg-primary-hover"
-                  : "border-border-soft border-b-border-lip bg-surface-container text-ink hover:bg-surface-hover"
-              )}
-            >
-              <Icon name="dashboard" size="sm" />
-              Dashboard
-            </Link>
-
-            <Link
-              href="/projects"
-              className={cn(
-                "inline-flex h-9 items-center gap-1.5 rounded-xl border-2 border-b-[5px] px-3.5 font-display text-[13px] font-bold transition-all duration-100 active:translate-y-[3px] active:border-b-2",
-                isProjects
-                  ? "border-primary-lip bg-primary text-on-primary hover:bg-primary-hover"
-                  : "border-border-soft border-b-border-lip bg-surface-container text-ink hover:bg-surface-hover"
-              )}
-            >
-              <Icon name="folder" size="sm" />
-              Daftar Proyek
-            </Link>
+            <div className="flex items-center rounded-2xl border-2 border-border-soft border-b-[4px] border-b-border-lip bg-surface-container p-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "relative inline-flex h-8 items-center gap-1.5 rounded-xl px-3.5 font-display text-[13px] font-bold transition-colors duration-150",
+                    item.active
+                      ? "text-on-primary"
+                      : "text-ink-muted hover:text-ink"
+                  )}
+                >
+                  {item.active && (
+                    <motion.span
+                      layoutId="navbar-nav-pill"
+                      transition={SPRING_PILL}
+                      className="absolute inset-0 rounded-xl bg-primary"
+                    />
+                  )}
+                  <Icon
+                    name={item.icon}
+                    size="sm"
+                    className="relative z-10"
+                  />
+                  <span className="relative z-10">{item.label}</span>
+                </Link>
+              ))}
+            </div>
 
             <Button
               size="sm"

@@ -1,7 +1,10 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { Button, Chip, Icon } from "@/components/ui";
+import { SPRING_PILL } from "@/lib/motion";
 import type { DashboardActiveProject } from "@/services/workspace-service";
+import { cn } from "@/lib/utils";
 
 export type WorkspaceLayoutMode = "split" | "kanban" | "projects";
 
@@ -59,21 +62,30 @@ export function WorkspaceToolbar({
           aria-label="Mode tampilan workspace"
           className="flex rounded-2xl border-2 border-border-soft border-b-[4px] border-b-border-lip bg-surface-container p-1"
         >
-          {LAYOUT_OPTIONS.map((opt) => (
-            <button
-              key={opt.mode}
-              type="button"
-              aria-pressed={layoutMode === opt.mode}
-              onClick={() => onLayoutChange(opt.mode)}
-              className={
-                layoutMode === opt.mode
-                  ? "rounded-xl bg-primary px-3 py-1 font-display text-[13px] font-bold text-on-primary cursor-pointer"
-                  : "rounded-xl px-3 py-1 font-display text-[13px] font-bold text-ink-muted hover:text-ink cursor-pointer"
-              }
-            >
-              {opt.label}
-            </button>
-          ))}
+          {LAYOUT_OPTIONS.map((opt) => {
+            const isActive = layoutMode === opt.mode;
+            return (
+              <button
+                key={opt.mode}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => onLayoutChange(opt.mode)}
+                className={cn(
+                  "relative rounded-xl px-3 py-1 font-display text-[13px] font-bold transition-colors duration-150 cursor-pointer",
+                  isActive ? "text-on-primary" : "text-ink-muted hover:text-ink"
+                )}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId="workspace-layout-pill"
+                    transition={SPRING_PILL}
+                    className="absolute inset-0 rounded-xl bg-primary"
+                  />
+                )}
+                <span className="relative z-10">{opt.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         <Button
